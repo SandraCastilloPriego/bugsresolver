@@ -32,7 +32,7 @@ public class SimpleBasicDataset implements BugDataset {
     String datasetName;
     Vector<PeakListRow> peakList;
     Vector<String> columnNames;
-    Hashtable<String, Integer> type;
+    Hashtable<String, String> type;
     String infoDataset = "";
     private int ID;
     private int numberRows = 0;
@@ -45,7 +45,7 @@ public class SimpleBasicDataset implements BugDataset {
         this.datasetName = datasetName;
         this.peakList = new Vector<PeakListRow>();
         this.columnNames = new Vector<String>();
-        this.type = new Hashtable<String, Integer>();
+        this.type = new Hashtable<String, String>();
     }
 
     /**
@@ -175,11 +175,11 @@ public class SimpleBasicDataset implements BugDataset {
         return newDataset;
     }
 
-    public void setType(String sampleName, int type) {
+    public void setType(String sampleName, String type) {
         this.type.put(sampleName, type);
     }
 
-    public int getType(String sampleName) {
+    public String getType(String sampleName) {
         return type.get(sampleName);
     }
 }

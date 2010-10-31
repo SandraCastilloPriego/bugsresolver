@@ -25,11 +25,11 @@ import java.util.List;
  */
 public class Cell {
 
-    int type;
+    String type;
     String sampleName;
     List<Bug> bugsInside;
 
-    public void setParameters(int type, String sampleName) {
+    public void setParameters(String type, String sampleName) {
         this.type = type;
         this.sampleName = sampleName;
         this.bugsInside = new ArrayList<Bug>();
@@ -41,6 +41,10 @@ public class Cell {
 
     public void removeBug(Bug bug){
         this.bugsInside.remove(bug);
+    }
+
+    public String getSampleName(){
+        return this.sampleName;
     }
 
     public Bug reproduction() {

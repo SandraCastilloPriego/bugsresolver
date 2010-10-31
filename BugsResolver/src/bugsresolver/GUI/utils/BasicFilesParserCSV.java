@@ -78,7 +78,7 @@ public class BasicFilesParserCSV {
 
             // Set types
             for (int i = 1; i < types.length; i++) {
-                this.dataset.setType(header[i], Integer.valueOf(types[i]));
+                this.dataset.setType(header[i], types[i]);
             }
 
             while (reader.readRecord()) {

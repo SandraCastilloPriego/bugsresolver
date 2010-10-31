@@ -159,12 +159,12 @@ public interface BugDataset {
      * Set the sample type
      * @param type
      */
-    public void setType(String sampleName, int type);
+    public void setType(String sampleName, String type);
 
     /**
      * Get the sample type
      * @param sampleName
      * @return type
      */
-    public int getType(String sampleName);
+    public String getType(String sampleName);
 }
