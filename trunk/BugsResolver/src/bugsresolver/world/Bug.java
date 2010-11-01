@@ -26,6 +26,7 @@ import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.Logistic;
+import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.trees.lmt.LogisticBase;
 import weka.core.Attribute;
 import weka.core.FastVector;
@@ -109,12 +110,19 @@ public class Bug {
         try {
 
             FastVector attributes = new FastVector();
-            //   Attribute type = new Attribute("type");
-            //  attributes.addElement(type);
+
             for (int i = 0; i < rowList.size(); i++) {
                 Attribute weight = new Attribute("weight" + i);
                 attributes.addElement(weight);
             }
+
+            FastVector labels = new FastVector();
+
+            labels.addElement("1");
+            labels.addElement("2");
+            Attribute type = new Attribute("class", labels);
+
+            attributes.addElement(type);
 
             //Creates the dataset
             data = new Instances("Dataset", attributes, 0);
@@ -123,24 +131,24 @@ public class Bug {
             for (int i = 0; i < numberForTraining; i++) {
                 double[] values = new double[data.numAttributes()];
                 String sampleName = dataset.getAllColumnNames().elementAt(i);
-                //  values[0] = Double.parseDouble(this.dataset.getType(sampleName));
                 int cont = 0;
                 for (PeakListRow row : rowList) {
                     values[cont++] = (Double) row.getPeak(sampleName);
                 }
+                values[cont] = data.attribute(data.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
+
                 Instance inst = new SparseInstance(1.0, values);
                 data.add(inst);
             }
 
 
 
-            data.setClassIndex(data.numAttributes() - 1);
-// train NaiveBayes
-            classifier = new LogisticBase();//.buildClassifier(data);
+            data.setClass(type);
+            classifier = new Logistic();
 
 
 
-            // classifier = new Logistic();
+            //    classifier = new SimpleLogistic();
             classifier.buildClassifier(data);
         } catch (Exception ex) {
             Logger.getLogger(Bug.class.getName()).log(Level.SEVERE, null, ex);
@@ -148,28 +156,39 @@ public class Bug {
     }
 
     public void eat() {
+
+
         String sampleName = this.cell.getSampleName();
 
-
-
         FastVector attributes = new FastVector();
-        //   Attribute type = new Attribute("type");
-        //  attributes.addElement(type);
+
         for (int i = 0; i < rowList.size(); i++) {
             Attribute weight = new Attribute("weight" + i);
             attributes.addElement(weight);
         }
+
+        FastVector labels = new FastVector();
+
+        labels.addElement("1");
+        labels.addElement("2");
+        Attribute type = new Attribute("class", labels);
+
+        attributes.addElement(type);
+
+        
 
         //Creates the dataset
         Instances train = new Instances("Train Dataset", attributes, 0);
 
         double[] values = new double[data.numAttributes()];
 
-        //  values[0] = Double.parseDouble(this.dataset.getType(sampleName));
+       
         int cont = 0;
         for (PeakListRow row : rowList) {
             values[cont++] = (Double) row.getPeak(sampleName);
         }
+        values[cont] = data.attribute(data.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
+
         Instance inst = new SparseInstance(1.0, values);
         data.add(inst);
 

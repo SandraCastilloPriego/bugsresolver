@@ -173,11 +173,15 @@ public class World {
     }
 
     private void death() {
+        List<Bug> deadBugs = new ArrayList<Bug>();
         for (Bug bug : population) {
             if (bug.isDead()) {
-                this.population.remove(bug);
+                deadBugs.add(bug);
                 this.cells[bug.getx()][bug.gety()].removeBug(bug);
             }
+        }
+        for(Bug bug : deadBugs){
+            this.population.remove(bug);
         }
     }
 }
