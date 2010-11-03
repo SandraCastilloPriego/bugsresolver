@@ -61,7 +61,7 @@ public class World {
 
     private void setSamplesInCell(Vector<String> samplesNames, Cell cell) {
         //60 % of the samples are for "training" and 40% for validation. The cells are the validation samples.
-        int numberForTraining = (int) (samplesNames.size() * 0.6);
+        int numberForTraining = 258;//(int) (samplesNames.size() * 0.6);
         int pos = rand.nextInt(samplesNames.size() - numberForTraining) + numberForTraining;
         String name = samplesNames.elementAt(pos);
         cell.setParameters(dataset.getType(name), name);

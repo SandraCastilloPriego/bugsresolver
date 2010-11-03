@@ -39,7 +39,7 @@ public class Bug {
     private Cell cell;
     private int x, y;
     private List<PeakListRow> rowList;
-    private int life = 50;
+    private double life = 100;
     private BugDataset dataset;
     private Classifier classifier;
     private Instances data;
@@ -94,7 +94,7 @@ public class Bug {
         return this.cell;
     }
 
-    public int getLife() {
+    public double getLife() {
         return life;
     }
 
@@ -132,7 +132,7 @@ public class Bug {
             //Creates the dataset
             data = new Instances("Dataset", attributes, 0);
             int numberOfPeaks = this.rowList.get(0).getNumberPeaks();
-            int numberForTraining = (int) (numberOfPeaks * 0.6);
+            int numberForTraining =258;// (int) (numberOfPeaks * 0.6);
             for (int i = 0; i < numberForTraining; i++) {
                 double[] values = new double[data.numAttributes()];
                 String sampleName = dataset.getAllColumnNames().elementAt(i);
@@ -162,7 +162,7 @@ public class Bug {
 
     public void eat() {
         if(isClassify()){
-            this.life++;
+            this.life +=1.01;
         }
     }
 
