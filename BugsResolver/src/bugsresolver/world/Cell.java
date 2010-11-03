@@ -18,6 +18,7 @@ package bugsresolver.world;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  *
@@ -28,6 +29,11 @@ public class Cell {
     String type;
     String sampleName;
     List<Bug> bugsInside;
+    Random rand;
+
+    public Cell() {
+        this.rand = new Random();
+    }
 
     public void setParameters(String type, String sampleName) {
         this.type = type;
@@ -35,22 +41,32 @@ public class Cell {
         this.bugsInside = new ArrayList<Bug>();
     }
 
-    public void addBug(Bug bug){
+    public void addBug(Bug bug) {
         this.bugsInside.add(bug);
     }
 
-    public void removeBug(Bug bug){
+    public void removeBug(Bug bug) {
         this.bugsInside.remove(bug);
     }
 
-    public String getSampleName(){
+    public String getSampleName() {
         return this.sampleName;
     }
 
+    public String getType() {
+        return this.type;
+    }
+
     public Bug reproduction() {
-        Bug mother, father;
-        if(bugsInside.size() > 1){
-            //ordenar por eficiencia y coger los dos más eficientes como padres.
+        if (bugsInside.size() > 1) {
+            Bug mother = bugsInside.get(0);
+            // if (mother.getLife() > 60) {
+            int index = rand.nextInt(bugsInside.size() - 1) + 1;
+            Bug father = this.bugsInside.get(index);
+            if (father.isClassify() && mother.isClassify()) {
+                return new Bug(mother, father, mother.getDataset());
+            }
+            //}
         }
         return null;
     }
