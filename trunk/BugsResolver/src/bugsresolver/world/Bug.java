@@ -23,11 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import weka.classifiers.Classifier;
-import weka.classifiers.Evaluation;
-import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.Logistic;
-import weka.classifiers.functions.SimpleLogistic;
-import weka.classifiers.trees.lmt.LogisticBase;
 import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
@@ -43,7 +39,7 @@ public class Bug {
     private Cell cell;
     private int x, y;
     private List<PeakListRow> rowList;
-    private int life = 100;
+    private int life = 50;
     private BugDataset dataset;
     private Classifier classifier;
     private Instances data;
@@ -58,7 +54,8 @@ public class Bug {
         this.classify();
     }
 
-    public Bug(Bug father, Bug mother) {
+    public Bug(Bug father, Bug mother, BugDataset dataset) {
+        this.dataset = dataset;
         this.cell = father.getCell();
         this.x = father.getx();
         this.y = father.gety();
@@ -95,6 +92,14 @@ public class Bug {
 
     public Cell getCell() {
         return this.cell;
+    }
+
+    public int getLife() {
+        return life;
+    }
+
+    public BugDataset getDataset() {
+        return this.dataset;
     }
 
     boolean isDead() {
@@ -156,57 +161,50 @@ public class Bug {
     }
 
     public void eat() {
+        if(isClassify()){
+            this.life++;
+        }
+    }
 
-
+    public boolean isClassify() {
         String sampleName = this.cell.getSampleName();
-
         FastVector attributes = new FastVector();
-
         for (int i = 0; i < rowList.size(); i++) {
             Attribute weight = new Attribute("weight" + i);
             attributes.addElement(weight);
         }
-
         FastVector labels = new FastVector();
-
         labels.addElement("1");
         labels.addElement("2");
         Attribute type = new Attribute("class", labels);
-
         attributes.addElement(type);
-
-        
-
         //Creates the dataset
         Instances train = new Instances("Train Dataset", attributes, 0);
-
-        double[] values = new double[data.numAttributes()];
-
-       
+        double[] values = new double[train.numAttributes()];
         int cont = 0;
         for (PeakListRow row : rowList) {
             values[cont++] = (Double) row.getPeak(sampleName);
         }
-        values[cont] = data.attribute(data.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
-
+        values[cont] = train.attribute(train.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
         Instance inst = new SparseInstance(1.0, values);
-        data.add(inst);
-
-
-
-        Evaluation eval = null;
+        train.add(inst);
+        train.setClassIndex(cont);
         try {
-            eval = new Evaluation(data);
+            double pred = classifier.classifyInstance(train.instance(0));
+           // System.out.print(train.instance(0).toString(train.classIndex()) + " - ");
+            //System.out.println(train.classAttribute().value((int) pred));
+
+            if (cell.type.equals(train.classAttribute().value((int) pred))) {
+                return true;
+            } else {
+                return false;
+            }
+
+
         } catch (Exception ex) {
             Logger.getLogger(Bug.class.getName()).log(Level.SEVERE, null, ex);
         }
-        try {
-            eval.evaluateModel(classifier, train);
-            System.out.println(eval.toSummaryString("\nResults\n\n", false));
-        } catch (Exception ex) {
-            Logger.getLogger(Bug.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
+        return false;
 
 
     }

@@ -86,6 +86,7 @@ public class World {
     }
 
     public void cicle() {
+        System.out.println(this.population.size());
         movement();
         eat();
 
@@ -105,34 +106,35 @@ public class World {
     private void movement() {
         for (Bug bug : population) {
             int direction = rand.nextInt(8);
+            int jump = rand.nextInt(10);
 
             int x = bug.getx();
             int y = bug.gety();
 
             switch (direction) {
                 case 0:
-                    this.setBugPosition(bug, x + 1, y);
+                    this.setBugPosition(bug, x + jump, y);
                     break;
                 case 1:
                     this.setBugPosition(bug, x, y);
                     break;
                 case 2:
-                    this.setBugPosition(bug, x, y + 1);
+                    this.setBugPosition(bug, x, y + jump);
                     break;
                 case 3:
-                    this.setBugPosition(bug, x, y - 1);
+                    this.setBugPosition(bug, x, y - jump);
                     break;
                 case 4:
-                    this.setBugPosition(bug, x + 1, y + 1);
+                    this.setBugPosition(bug, x + jump, y + jump);
                     break;
                 case 5:
-                    this.setBugPosition(bug, x + 1, y - 1);
+                    this.setBugPosition(bug, x + jump, y - jump);
                     break;
                 case 6:
-                    this.setBugPosition(bug, x - 1, y + 1);
+                    this.setBugPosition(bug, x - jump, y + jump);
                     break;
                 case 7:
-                    this.setBugPosition(bug, x - 1, y - 1);
+                    this.setBugPosition(bug, x - jump, y - jump);
                     break;
             }
 
