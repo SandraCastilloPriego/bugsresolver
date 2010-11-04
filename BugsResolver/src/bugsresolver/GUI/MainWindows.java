@@ -25,7 +25,10 @@ package bugsresolver.GUI;
 import bugsresolver.GUI.openfile.DatasetOpenDialog;
 import bugsresolver.GUI.utils.BasicFilesParserCSV;
 import bugsresolver.data.BugDataset;
+import bugsresolver.data.PeakListRow;
+import bugsresolver.world.Bug;
 import bugsresolver.world.World;
+import java.util.List;
 
 /**
  *
@@ -62,6 +65,7 @@ public class MainWindows extends javax.swing.JFrame {
         exitMenuItem = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         openMenuItem = new javax.swing.JMenuItem();
+        saveMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
@@ -118,6 +122,14 @@ public class MainWindows extends javax.swing.JFrame {
         });
         jMenu2.add(openMenuItem);
 
+        saveMenuItem.setText("Save Result");
+        saveMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu2.add(saveMenuItem);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -147,6 +159,7 @@ public class MainWindows extends javax.swing.JFrame {
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
     private void startMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startMenuItemActionPerformed
+        start = false;
         if (dataset != null) {
             world = new World(dataset, 200);
             canvas = new CanvasWorld(world);
@@ -163,6 +176,22 @@ public class MainWindows extends javax.swing.JFrame {
     private void stopMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopMenuItemActionPerformed
         start = false;
     }//GEN-LAST:event_stopMenuItemActionPerformed
+
+    private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuItemActionPerformed
+        try {
+            List<Bug> population = world.getPopulation();
+            for (Bug bug : population) {
+                if (bug.getSensitivity() > 0.75 && bug.getSpecificity() > 0.45 && bug.getAge() > 1000) {
+                    System.out.println("statistics: " + bug.getAge() + " - " + bug.getTotal() + " sensitivity: " + bug.getSensitivity() + " specificity: " + bug.getSpecificity() + " - " + bug.getClassifierType());
+                    for (PeakListRow row : bug.getRows()) {
+                        System.out.println(row.getID());
+                    }
+                    System.out.println("----------------");
+                }
+            }
+        } catch (Exception e) {
+        }
+    }//GEN-LAST:event_saveMenuItemActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel canvasPanel;
     private javax.swing.JMenuItem exitMenuItem;
@@ -171,6 +200,7 @@ public class MainWindows extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem openMenuItem;
+    private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JMenuItem startMenuItem;
     private javax.swing.JMenuItem stopMenuItem;
     // End of variables declaration//GEN-END:variables

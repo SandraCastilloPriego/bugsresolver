@@ -17,6 +17,8 @@
 package bugsresolver.world;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -57,17 +59,27 @@ public class Cell {
         return this.type;
     }
 
-    public Bug reproduction() {
-        if (bugsInside.size() > 1) {
-            Bug mother = bugsInside.get(0);
-            // if (mother.getLife() > 60) {
-            int index = rand.nextInt(bugsInside.size() - 1) + 1;
-            Bug father = this.bugsInside.get(index);
-            if (father.isClassify() && mother.isClassify()) {
-                return new Bug(mother, father, mother.getDataset());
+    public List<Bug> reproduction() {
+        Comparator<Bug> c = new Comparator<Bug>() {
+
+            public int compare(Bug o1, Bug o2) {
+                if (o1.getSpecificity() < o2.getSpecificity() && o1.getSensitivity() < o2.getSensitivity()) {
+                    return 1;
+                } else {
+                    return -1;
+                }
             }
-            //}
+        };
+        Collections.sort(bugsInside, c);
+        List<Bug> childs = new ArrayList<Bug>();
+        if (bugsInside.size() > 1) {
+            Bug mother = bugsInside.get(0);           
+                for (Bug father : this.bugsInside) {
+                    if (mother != father && father.isClassify() && mother.isClassify() &&  mother.getSpecificity() > 0.5 && mother.getSensitivity() > 0.5) {
+                        childs.add(new Bug(mother, father, mother.getDataset()));
+                    }
+                }
         }
-        return null;
+        return childs;
     }
 }
