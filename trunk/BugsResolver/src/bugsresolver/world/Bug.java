@@ -20,10 +20,40 @@ import bugsresolver.data.BugDataset;
 import bugsresolver.data.PeakListRow;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import weka.classifiers.Classifier;
+import weka.classifiers.bayes.ComplementNaiveBayes;
+import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.bayes.NaiveBayesMultinomial;
+import weka.classifiers.bayes.NaiveBayesMultinomialUpdateable;
+import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.Logistic;
+import weka.classifiers.functions.MultilayerPerceptron;
+import weka.classifiers.functions.SMO;
+import weka.classifiers.functions.SimpleLogistic;
+import weka.classifiers.lazy.IB1;
+import weka.classifiers.lazy.IBk;
+import weka.classifiers.lazy.KStar;
+import weka.classifiers.lazy.LWL;
+import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.meta.Bagging;
+import weka.classifiers.meta.LogitBoost;
+import weka.classifiers.meta.MultiScheme;
+import weka.classifiers.meta.RandomCommittee;
+import weka.classifiers.meta.RandomSubSpace;
+import weka.classifiers.meta.Stacking;
+import weka.classifiers.rules.JRip;
+import weka.classifiers.rules.OneR;
+import weka.classifiers.rules.PART;
+import weka.classifiers.rules.ZeroR;
+import weka.classifiers.trees.J48;
+import weka.classifiers.trees.LMT;
+import weka.classifiers.trees.REPTree;
+import weka.classifiers.trees.RandomForest;
+import weka.classifiers.trees.RandomTree;
+import weka.classifiers.trees.lmt.LogisticBase;
 import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
@@ -39,19 +69,31 @@ public class Bug {
     private Cell cell;
     private int x, y;
     private List<PeakListRow> rowList;
-    private double life = 100;
+    private double life = 200;
     private BugDataset dataset;
     private Classifier classifier;
+    private classifiersEnum classifierType;
     private Instances data;
+    private double wellClassified, total;
+    private double sensitivity, totalsen;
+    private double specificity, totalspec;
+    private Random rand;
 
     public Bug(int x, int y, Cell cell, PeakListRow row, BugDataset dataset) {
+        rand = new Random();
         this.cell = cell;
         this.dataset = dataset;
         this.x = x;
         this.y = y;
         this.rowList = new ArrayList<PeakListRow>();
         this.rowList.add(row);
+        int n = rand.nextInt(classifiersEnum.values().length);
+        this.classifierType = classifiersEnum.values()[n];
         this.classify();
+    }
+
+    public double getAge() {
+        return this.total;
     }
 
     public Bug(Bug father, Bug mother, BugDataset dataset) {
@@ -61,12 +103,46 @@ public class Bug {
         this.y = father.gety();
         this.rowList = new ArrayList<PeakListRow>();
         for (PeakListRow row : father.getRows()) {
-            this.rowList.add(row);
+            if (this.rowList.contains(row)) {
+                if (this.rowList.size() == 1) {
+                    this.life = 0;
+                }
+            } else {
+                this.rowList.add(row);
+            }
         }
         for (PeakListRow row : mother.getRows()) {
-            this.rowList.add(row);
+            if (this.rowList.contains(row)) {
+                if (this.rowList.size() == 1) {
+                    this.life = 0;
+                }
+            } else {
+                this.rowList.add(row);
+            }
         }
+        if (mother.specificity > father.getSpecificity()) {
+            this.classifierType = mother.getClassifierType();
+        } else {
+            this.classifierType = father.getClassifierType();
+        }
+
         this.classify();
+    }
+
+    public classifiersEnum getClassifierType() {
+        return this.classifierType;
+    }
+
+    public double getTotal() {
+        return this.wellClassified / this.total;
+    }
+
+    public double getSensitivity() {
+        return this.sensitivity / this.totalsen;
+    }
+
+    public double getSpecificity() {
+        return this.specificity / this.totalspec;
     }
 
     public List<PeakListRow> getRows() {
@@ -103,7 +179,11 @@ public class Bug {
     }
 
     boolean isDead() {
-        this.life--;
+        this.life -= (1 - this.getSensitivity());
+        this.life -= (1 - this.getSpecificity());
+        if (this.rowList.size() == 0) {
+            life = 0;
+        }
         if (this.life == 0) {
             return true;
         } else {
@@ -131,8 +211,8 @@ public class Bug {
 
             //Creates the dataset
             data = new Instances("Dataset", attributes, 0);
-            int numberOfPeaks = this.rowList.get(0).getNumberPeaks();
-            int numberForTraining =258;// (int) (numberOfPeaks * 0.6);
+            // int numberOfPeaks = this.rowList.get(0).getNumberPeaks();
+            int numberForTraining = 287;// (int) (numberOfPeaks * 0.6);
             for (int i = 0; i < numberForTraining; i++) {
                 double[] values = new double[data.numAttributes()];
                 String sampleName = dataset.getAllColumnNames().elementAt(i);
@@ -146,23 +226,37 @@ public class Bug {
                 data.add(inst);
             }
 
-
-
             data.setClass(type);
-            classifier = new Logistic();
 
-
-
-            //    classifier = new SimpleLogistic();
+            classifier = setClassifier();
             classifier.buildClassifier(data);
         } catch (Exception ex) {
             Logger.getLogger(Bug.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public void eat() {
-        if(isClassify()){
-            this.life +=1.01;
+    public void eat(int nBugs) {
+        total++;
+        if (cell.type.equals("1")) {
+            this.totalspec++;
+        } else {
+            this.totalsen++;
+        }
+        if (isClassify()) {
+            double food;
+            if(this.getSensitivity() > this.getSpecificity()){
+                food = this.getSpecificity();
+            }else{
+                food = this.sensitivity;
+            }
+            this.life += food;
+            wellClassified++;
+
+            if (cell.type.equals("1")) {
+                this.specificity++;
+            } else {
+                this.sensitivity++;
+            }
         }
     }
 
@@ -191,7 +285,7 @@ public class Bug {
         train.setClassIndex(cont);
         try {
             double pred = classifier.classifyInstance(train.instance(0));
-           // System.out.print(train.instance(0).toString(train.classIndex()) + " - ");
+            // System.out.print(train.instance(0).toString(train.classIndex()) + " - ");
             //System.out.println(train.classAttribute().value((int) pred));
 
             if (cell.type.equals(train.classAttribute().value((int) pred))) {
@@ -206,6 +300,74 @@ public class Bug {
         }
         return false;
 
+
+    }
+
+    private Classifier setClassifier() {
+        switch (this.classifierType) {
+            case Logistic:
+                return new Logistic();
+            case LogisticBase:
+                return new LogisticBase();
+            case LogitBoost:
+                return new LogitBoost();
+            case LWL:
+                return new LWL();
+            case NaiveBayesMultinomialUpdateable:
+                return new NaiveBayesMultinomialUpdateable();
+            case NaiveBayesUpdateable:
+                return new NaiveBayesUpdateable();
+            case MultilayerPerceptron:
+                return new MultilayerPerceptron();
+            case RandomForest:
+                return new RandomForest();
+            case RandomCommittee:
+                return new RandomCommittee();
+            case RandomTree:
+                return new RandomTree();
+            case ZeroR:
+                return new ZeroR();
+            case Stacking:
+                return new Stacking();
+            case AdaBoostM1:
+                return new AdaBoostM1();
+            case Bagging:
+                return new Bagging();            
+            case ComplementNaiveBayes:
+                return new ComplementNaiveBayes();            
+            case IB1:
+                return new IB1();
+            case IBk:
+                return new IBk();            
+            case J48:
+                return new J48();
+            case JRip:
+                return new JRip();
+            case KStar:
+                return new KStar();
+            case LMT:
+                return new LMT();          
+            case MultiScheme:
+                return new MultiScheme();
+            case NaiveBayes:
+                return new NaiveBayes();
+            case NaiveBayesMultinomial:
+                return new NaiveBayesMultinomial();
+            case OneR:
+                return new OneR();
+            case PART:
+                return new PART();
+            case RandomSubSpace:
+                return new RandomSubSpace();
+            case REPTree:
+                return new REPTree();
+            case SimpleLogistic:
+                return new SimpleLogistic();
+            case SMO:
+                return new SMO();            
+            default:
+                return new RandomTree();
+        }
 
     }
 }
