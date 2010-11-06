@@ -10,13 +10,13 @@ package bugsresolver.world;
  * @author scsandra
  */
 public enum classifiersEnum {
-    Logistic, LogisticBase, LogitBoost, LWL, 
+    Logistic, LogisticBase, LogitBoost, 
     NaiveBayesMultinomialUpdateable, NaiveBayesUpdateable,
-    MultilayerPerceptron, RandomForest, RandomCommittee, RandomTree,
+    RandomForest, RandomCommittee, RandomTree,
     ZeroR, Stacking, AdaBoostM1, Bagging,
     ComplementNaiveBayes,
-    IB1, IBk, 
-    J48, JRip, KStar,LMT, 
+    IB1, 
+    J48, KStar,LMT, 
     MultiScheme, NaiveBayes, NaiveBayesMultinomial, OneR,
     PART,
     RandomSubSpace, REPTree,

@@ -55,7 +55,7 @@ public class World {
                     this.setSamplesInCell(samplesNames, cells[i][j]);
                 }
             }
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 5; i++) {
                 for (PeakListRow row : dataset.getRows()) {
                     this.addBug(row);
                 }
@@ -90,7 +90,7 @@ public class World {
     }
 
     public void cicle() {
-        // System.out.println(this.population.size());
+        //System.out.println(this.population.size());
         movement();
         eat();
 
@@ -108,7 +108,7 @@ public class World {
 
         death();
 
-        this.printResult();
+      // this.printResult();
     }
 
     private void movement() {
@@ -193,23 +193,27 @@ public class World {
     }
 
     private void printResult() {
-        if (population.size() > 1500) {
+        if (population.size() > 400) {
             Comparator<Bug> c = new Comparator<Bug>() {
 
                 public int compare(Bug o1, Bug o2) {
-                    if ((o1.getSpecificity()) + (o1.getSensitivity()) > (o2.getSensitivity() + o2.getSpecificity())) {
+                    if ((o1.getAreaUnderTheCurve()) < (o2.getAreaUnderTheCurve())) {
                         return 1;
                     } else {
                         return -1;
                     }
                 }
             };
+
             Collections.sort(population, c);
 
-            for (int i = 1200; i < population.size(); i++) {
-                this.population.remove(i);
-                System.out.println(this.population.get(i).getSensitivity());
+            List<Bug> populationcopy = new ArrayList<Bug>();
+            for (int i = 0; i < 400; i++) {
+                populationcopy.add(this.population.get(i));
+                //System.out.println(this.population.get(i).getSensitivity());
             }
+
+            this.population = populationcopy;
             /*try {
             Bug bug = this.population.get(0);
 
@@ -237,6 +241,7 @@ public class World {
         for (Bug bug : deadBugs) {
             this.population.remove(bug);
         }
+       // System.runFinalization();
     }
 
     public class Population implements Comparable<Bug> {
