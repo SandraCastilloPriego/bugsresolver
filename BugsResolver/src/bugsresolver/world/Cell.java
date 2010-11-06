@@ -63,20 +63,23 @@ public class Cell {
         Comparator<Bug> c = new Comparator<Bug>() {
 
             public int compare(Bug o1, Bug o2) {
-                if (o1.getSpecificity() < o2.getSpecificity() && o1.getSensitivity() < o2.getSensitivity()) {
+                if (o1.getAreaUnderTheCurve() < o2.getAreaUnderTheCurve()) {
                     return 1;
                 } else {
                     return -1;
                 }
             }
         };
-        Collections.sort(bugsInside, c);
         List<Bug> childs = new ArrayList<Bug>();
         if (bugsInside.size() > 1) {
+            Collections.sort(bugsInside, c);
             Bug mother = bugsInside.get(0);
             for (Bug father : this.bugsInside) {
-                if (mother != father && father.isClassify() && mother.isClassify()) {
-                    childs.add(new Bug(mother, father, mother.getDataset()));                    
+                if (mother != father && father.isClassify() && mother.isClassify()
+                        && mother.getAreaUnderTheCurve() > 0.4 && father.getAreaUnderTheCurve() > 0.4
+                    //    && mother.getAge()>100 && father.getAge()>100
+                        ) {
+                    childs.add(new Bug(mother, father, mother.getDataset()));                   
                 }
             }
         }
