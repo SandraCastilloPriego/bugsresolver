@@ -73,12 +73,12 @@ public class Cell {
         Collections.sort(bugsInside, c);
         List<Bug> childs = new ArrayList<Bug>();
         if (bugsInside.size() > 1) {
-            Bug mother = bugsInside.get(0);           
-                for (Bug father : this.bugsInside) {
-                    if (mother != father && father.isClassify() && mother.isClassify() &&  mother.getSpecificity() > 0.5 && mother.getSensitivity() > 0.5) {
-                        childs.add(new Bug(mother, father, mother.getDataset()));
-                    }
+            Bug mother = bugsInside.get(0);
+            for (Bug father : this.bugsInside) {
+                if (mother != father && father.isClassify() && mother.isClassify()) {
+                    childs.add(new Bug(mother, father, mother.getDataset()));                    
                 }
+            }
         }
         return childs;
     }

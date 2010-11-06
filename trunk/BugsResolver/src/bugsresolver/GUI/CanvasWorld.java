@@ -59,8 +59,11 @@ public class CanvasWorld extends Canvas {
             for (Bug bug : population) {
                 int n_x = (int) (bug.getx() * canvasSize) / size;
                 int n_y = (int) (bug.gety() * canvasSize) / size;
-               
-                offgc.setColor(Color.GREEN);
+                if (bug.getAreaUnderTheCurve() > 0.7) {
+                    offgc.setColor(Color.RED);
+                } else {
+                    offgc.setColor(Color.GREEN);
+                }
                 offgc.fillRect(n_x, n_y, (int) cellSize, (int) cellSize);
                 offgc.setColor(Color.black);
                 offgc.drawRect(n_x, n_y, (int) cellSize, (int) cellSize);
@@ -68,7 +71,7 @@ public class CanvasWorld extends Canvas {
 
             }
             // transfer offscreen to window
-            g.drawImage(offscreen, 0, 0, this);           
+            g.drawImage(offscreen, 0, 0, this);
 
         } catch (Exception e) {
         }
