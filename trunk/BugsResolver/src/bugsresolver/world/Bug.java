@@ -67,7 +67,7 @@ public class Bug {
     private Cell cell;
     private int x, y;
     private List<PeakListRow> rowList;
-    private double life = 100;
+    private double life = 30;
     private BugDataset dataset;
     private Classifier classifier;
     private classifiersEnum classifierType;
@@ -77,8 +77,9 @@ public class Bug {
     private double specificity;
     double spec = 0, sen = 0, totalspec = 0, totalsen = 0;
     private Random rand;
-    private int MAXNUMBERGENES = 4;
+    private int MAXNUMBERGENES = 3;
     Evaluation eval;
+    boolean fixValue = false;
 
     public Bug(int x, int y, Cell cell, PeakListRow row, BugDataset dataset) {
         rand = new Random();
@@ -93,11 +94,11 @@ public class Bug {
         this.classify();
         // System.out.println(this.classifierType);
        /* if (this.classifier != null) {
-            List<Integer> ids = new ArrayList<Integer>();
-            ids.add(row.getID());
-            if (ids.size() > 0) {
-              this.prediction(ids);
-            }
+        List<Integer> ids = new ArrayList<Integer>();
+        ids.add(row.getID());
+        if (ids.size() > 0) {
+        this.prediction(ids);
+        }
         }*/
     }
 
@@ -118,7 +119,7 @@ public class Bug {
 
         this.orderPurgeGenes();
 
-        if (mother.specificity > father.getSpecificity()) {
+        if (mother.getAreaUnderTheCurve() > father.getAreaUnderTheCurve()) {
             this.classifierType = mother.getClassifierType();
         } else {
             this.classifierType = father.getClassifierType();
@@ -126,11 +127,11 @@ public class Bug {
 
         this.classify();
 
-        List<Integer> IDs = new ArrayList<Integer>();
+        /* List<Integer> IDs = new ArrayList<Integer>();
         for (PeakListRow row : this.getRows()) {
-            IDs.add(row.getID());
-        }
-       // this.prediction(IDs);
+        IDs.add(row.getID());
+        }*/
+        // this.prediction(IDs);
     }
 
     public void assingGenes(Bug parent, int plus) {
@@ -143,9 +144,9 @@ public class Bug {
 
     public void orderPurgeGenes() {
         int removeGenes = this.rowList.size() - this.MAXNUMBERGENES;
-        if(removeGenes > 0){
-            for(int i = 0; i < removeGenes; i++){
-                int index = rand.nextInt(this.rowList.size()-1);
+        if (removeGenes > 0) {
+            for (int i = 0; i < removeGenes; i++) {
+                int index = rand.nextInt(this.rowList.size() - 1);
                 this.rowList.remove(index);
             }
         }
@@ -160,11 +161,11 @@ public class Bug {
     }
 
     public double getSensitivity() {
-        return this.sensitivity;
+        return this.sensitivity / this.totalsen;
     }
 
     public double getSpecificity() {
-        return this.specificity;
+        return this.specificity / this.totalspec;
     }
 
     public List<PeakListRow> getRows() {
@@ -201,7 +202,7 @@ public class Bug {
     }
 
     boolean isDead() {
-        life--;
+        life -= ((1 - this.getAreaUnderTheCurve()) * 3);
         if (this.rowList.size() == 0) {
             life = 0;
         }
@@ -259,16 +260,42 @@ public class Bug {
     }
 
     public void eat(int nBugs) {
-        if (isClassify()) {
-            /* double food;
-            if (this.getSensitivity() > this.getSpecificity()) {
-            food = this.getSpecificity() / 2;
+        total++;
+        if (!fixValue) {
+            if (cell.type.equals("1")) {
+                this.totalspec++;
             } else {
-            food = this.getSensitivity() / 2;
+                this.totalsen++;
             }
-            this.life += food;*/
-            life++;
+        } else {
+            this.totalsen = 1;
+            this.totalspec = 1;
         }
+        if (isClassify()) {
+            wellClassified++;
+            this.life += ((this.getAreaUnderTheCurve()) * (1 / nBugs));
+            if (!fixValue) {
+                if (cell.type.equals("1")) {
+                    this.specificity++;
+                } else {
+                    this.sensitivity++;
+                }
+            }
+        }
+        if (!fixValue) {
+            if (this.getAge() > 100 && this.getAreaUnderTheCurve() > 0.75) {
+                /* System.out.println("statistics:  " + this.getAge() + " - " + this.getClassifierType());
+                for (PeakListRow row : this.getRows()) {
+                System.out.println(row.getID());
+                }
+                System.out.println(this.getSensitivity() + " - " + this.getSpecificity());*/
+                this.prediction();
+            }
+        }
+    }
+
+    public void kill() {
+        this.life = -1;
     }
 
     public boolean isClassify() {
@@ -381,19 +408,20 @@ public class Bug {
     }
 
     public double getAreaUnderTheCurve() {
-        try {
-            return eval.areaUnderROC(data.classIndex());
-        } catch (NullPointerException exception) {
+        double value = (this.getSpecificity() + this.getSensitivity()) / 2;
+        if (value != Double.NaN) {
+            return value;
+        } else {
             return 0;
         }
     }
 
-    private void prediction(List<Integer> ids) {
+    private void prediction() {
         try {
 
             FastVector attributes = new FastVector();
 
-            for (int i = 0; i < ids.size(); i++) {
+            for (int i = 0; i < this.rowList.size(); i++) {
                 Attribute weight = new Attribute("weight" + i);
                 attributes.addElement(weight);
             }
@@ -407,56 +435,28 @@ public class Bug {
             attributes.addElement(type);
 
             //Creates the dataset
-           /* validation = new Instances("Dataset", attributes, 0);
+            validation = new Instances("Dataset2", attributes, 0);
 
             int numberForTraining = 287;// (int) (numberOfPeaks * 0.6);
             for (int i = numberForTraining; i < dataset.getNumberCols(); i++) {
                 double[] values = new double[validation.numAttributes()];
                 String sampleName = dataset.getAllColumnNames().elementAt(i);
                 int cont = 0;
-                for (Integer id : ids) {
-                    for (PeakListRow row : dataset.getRows()) {
-                        if (row.getID() == id) {
-                            values[cont++] = (Double) row.getPeak(sampleName);
-                        }
-                    }
+
+                for (PeakListRow row : this.rowList) {
+                    values[cont++] = (Double) row.getPeak(sampleName);
                 }
+
                 values[cont] = validation.attribute(validation.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
 
                 Instance inst = new SparseInstance(1.0, values);
                 validation.add(inst);
             }
 
-            validation.setClass(type);*/
-            //  System.out.println("# - actual - predicted - distribution");
+            validation.setClass(type);
             if (classifier != null) {
-                /*for (int i = numberForTraining; i < dataset.getNumberCols(); i++) {
-                try {
-                double pred = classifier.classifyInstance(train.instance(i));
-
-                // double[] dist = classifier.distributionForInstance(train.instance(i));
-                /*System.out.print((i + 1) + " - ");
-                System.out.print(train.instance(i).toString(train.classIndex()) + " - ");
-                System.out.print(train.classAttribute().value((int) pred) + " - ");
-                System.out.println(Utils.arrayToString(dist));*/
-                /* if (pred != -1) {
-                if (train.instance(i).toString(train.classIndex()).equals("1")) {
-                this.totalspec++;
-                if (train.classAttribute().value((int) pred).equals("1")) {
-                this.spec++;
-                }
-                } else {
-                this.totalsen++;
-                if (train.classAttribute().value((int) pred).equals("2")) {
-                this.sen++;
-                }
-                }
-                }
-                } catch (Exception eeee) {
-                }*/
-                Classifier cl = new Logistic();
-                eval = new Evaluation(data);
-                eval.crossValidateModel(cl, data, 10, new Random(1));
+                eval = new Evaluation(validation);
+                eval.crossValidateModel(classifier, validation, 10, new Random(1));
                 //System.out.println(eval.weightedPrecision() + " - " + eval.weightedRecall());
 
 
@@ -464,17 +464,42 @@ public class Bug {
                 sensitivity = eval.weightedPrecision();
 
 
-                if (this.getAreaUnderTheCurve() > 0.7) {
-                    System.out.println("statistics:  " + this.getClassifierType());
-                    for (PeakListRow row : this.getRows()) {
-                        System.out.println(row.getID());
+                //      if (this.getAreaUnderTheCurve() > 0.7) {
+                System.out.println("statistics:  " + this.getClassifierType());
+                for (PeakListRow row : this.getRows()) {
+                    System.out.println(row.getID());
+                }
+                System.out.println(eval.weightedPrecision() + " - " + eval.weightedRecall() + " AUC: " + eval.weightedAreaUnderROC());
+            }
+            // }
+            double sp = 0, tsp = 0, sn = 0, tsn = 0;
+
+            for (int i = 287; i < dataset.getNumberCols(); i++) {
+
+                try {
+                    double pred = classifier.classifyInstance(validation.instance(i));
+
+                    if (validation.instance(i).toString(validation.classIndex()).equals("1")) {
+                        tsp++;
+                        if (validation.classAttribute().value((int) pred).equals("1")) {
+                            sp++;
+                        }
+                    } else {
+                        tsn++;
+                        if (validation.classAttribute().value((int) pred).equals("2")) {
+                            sn++;
+                        }
                     }
-                    System.out.println(eval.weightedPrecision() + " - " + eval.weightedRecall() + " AUC: " + this.getAreaUnderTheCurve());
+                } catch (Exception eeee) {
                 }
             }
-
+            specificity = sp / tsp;
+            sensitivity = sn / tsn;
+            fixValue = true;
+            System.out.println("spec: " + specificity + " sen: " + sensitivity);
         } catch (Exception ex) {
-            //ex.printStackTrace();
+            ex.printStackTrace();
         }
+
     }
 }

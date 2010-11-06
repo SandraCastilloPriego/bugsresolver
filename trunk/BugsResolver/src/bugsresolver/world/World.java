@@ -109,18 +109,22 @@ public class World {
         death();
 
       // this.printResult();
+
+       /* for(Bug bug : population){
+
+        }*/
     }
 
     private void movement() {
         for (Bug bug : population) {
-            //  int direction = rand.nextInt(8);
-            jump = rand.nextInt(100);
+            int direction = rand.nextInt(8);
+            jump = rand.nextInt(20);
 
             int x = bug.getx();
             int y = bug.gety();
             this.setBugPosition(bug, x, y);
 
-            /*switch (direction) {
+            switch (direction) {
             case 0:
             this.setBugPosition(bug, x + jump, y);
             break;
@@ -145,18 +149,26 @@ public class World {
             case 7:
             this.setBugPosition(bug, x - jump, y - jump);
             break;
-            }*/
+            }
 
         }
     }
 
-    private void setBugPosition(Bug bug, int x, int y) {
-        int newx = rand.nextInt(this.cellsPerSide - 1);
+    private void setBugPosition(Bug bug, int newx, int newy) {
+       /* int newx = rand.nextInt(this.cellsPerSide - 1);
         int newy = rand.nextInt(this.cellsPerSide - 1);
         bug.getCell().removeBug(bug);
         bug.setPosition(newx, newy);
         cells[newx][newy].addBug(bug);
+        bug.setCell(cells[newx][newy]);*/
+
+        newx = Math.abs(newx) % this.cellsPerSide;
+        newy =  Math.abs(newy) % this.cellsPerSide;
+        bug.getCell().removeBug(bug);
+        bug.setPosition(newx, newy);
+        cells[newx][newy].addBug(bug);
         bug.setCell(cells[newx][newy]);
+
 
     }
     /* private void setBugPosition(Bug bug, int newx, int newy) {
@@ -192,12 +204,12 @@ public class World {
         }
     }
 
-    private void printResult() {
-        if (population.size() > 400) {
+   public void purgeBugs() {
+        if (population.size() > 3000) {
             Comparator<Bug> c = new Comparator<Bug>() {
 
                 public int compare(Bug o1, Bug o2) {
-                    if ((o1.getAreaUnderTheCurve()) < (o2.getAreaUnderTheCurve())) {
+                    if (o1.getAreaUnderTheCurve() < o2.getAreaUnderTheCurve()) {
                         return 1;
                     } else {
                         return -1;
@@ -207,13 +219,14 @@ public class World {
 
             Collections.sort(population, c);
 
-            List<Bug> populationcopy = new ArrayList<Bug>();
-            for (int i = 0; i < 400; i++) {
-                populationcopy.add(this.population.get(i));
+          //  List<Bug> populationcopy = new ArrayList<Bug>();
+            for (int i = 3000; i < this.population.size(); i++) {
+                population.get(i).kill();
+               // populationcopy.add(this.population.get(i));
                 //System.out.println(this.population.get(i).getSensitivity());
             }
 
-            this.population = populationcopy;
+          //  this.population = populationcopy;
             /*try {
             Bug bug = this.population.get(0);
 
@@ -240,8 +253,7 @@ public class World {
         }
         for (Bug bug : deadBugs) {
             this.population.remove(bug);
-        }
-       // System.runFinalization();
+        }      
     }
 
     public class Population implements Comparable<Bug> {
@@ -260,4 +272,6 @@ public class World {
             }
         }
     }
+
+
 }

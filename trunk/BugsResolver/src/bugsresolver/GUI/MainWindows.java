@@ -117,6 +117,7 @@ public class MainWindows extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         openMenuItem = new javax.swing.JMenuItem();
         saveMenuItem = new javax.swing.JMenuItem();
+        purgeMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
@@ -181,6 +182,14 @@ public class MainWindows extends javax.swing.JFrame {
         });
         jMenu2.add(saveMenuItem);
 
+        purgeMenuItem.setText("Purge Bugs");
+        purgeMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                purgeMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu2.add(purgeMenuItem);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -233,7 +242,7 @@ public class MainWindows extends javax.swing.JFrame {
         try {
             List<Bug> population = world.getPopulation();
             for (Bug bug : population) {
-                if (bug.getSensitivity() > 0.75 && bug.getSpecificity() > 0.45 && bug.getAge() > 1000) {
+                if (bug.getSensitivity() > 0.70 && bug.getSpecificity() > 0.5 && bug.getAge() > 100) {
                     System.out.println("statistics: " + bug.getAge() + " - " + bug.getClassifierType());
                     for (PeakListRow row : bug.getRows()) {
                         this.addId(row.getID());
@@ -250,6 +259,11 @@ public class MainWindows extends javax.swing.JFrame {
         } catch (Exception e) {
         }
     }//GEN-LAST:event_saveMenuItemActionPerformed
+
+    private void purgeMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_purgeMenuItemActionPerformed
+        this.world.purgeBugs();
+    }//GEN-LAST:event_purgeMenuItemActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel canvasPanel;
     private javax.swing.JMenuItem exitMenuItem;
@@ -258,6 +272,7 @@ public class MainWindows extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem openMenuItem;
+    private javax.swing.JMenuItem purgeMenuItem;
     private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JMenuItem startMenuItem;
     private javax.swing.JMenuItem stopMenuItem;

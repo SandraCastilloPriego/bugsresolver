@@ -59,8 +59,11 @@ public class CanvasWorld extends Canvas {
             for (Bug bug : population) {
                 int n_x = (int) (bug.getx() * canvasSize) / size;
                 int n_y = (int) (bug.gety() * canvasSize) / size;
-                if (bug.getAreaUnderTheCurve() > 0.7) {
+               
+                if (bug.getAreaUnderTheCurve() > 0.75) {
                     offgc.setColor(Color.RED);
+                } else if (bug.getAreaUnderTheCurve() > 0.6) {
+                    offgc.setColor(Color.BLUE);
                 } else {
                     offgc.setColor(Color.GREEN);
                 }
