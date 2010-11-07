@@ -283,7 +283,7 @@ public class Bug {
             }
         }
         if (!fixValue) {
-            if (this.getAge() > 100 && this.getAreaUnderTheCurve() > 0.75) {
+            if (this.getAge() > 100 && this.getAreaUnderTheCurve() > 0.70) {
                 /* System.out.println("statistics:  " + this.getAge() + " - " + this.getClassifierType());
                 for (PeakListRow row : this.getRows()) {
                 System.out.println(row.getID());
@@ -437,8 +437,8 @@ public class Bug {
             //Creates the dataset
             validation = new Instances("Dataset2", attributes, 0);
 
-            int numberForTraining = 287;// (int) (numberOfPeaks * 0.6);
-            for (int i = numberForTraining; i < dataset.getNumberCols(); i++) {
+            int numberForTraining =0;// (int) (numberOfPeaks * 0.6);
+            for (int i = numberForTraining; i < 287/*dataset.getNumberCols()*/; i++) {
                 double[] values = new double[validation.numAttributes()];
                 String sampleName = dataset.getAllColumnNames().elementAt(i);
                 int cont = 0;
@@ -457,46 +457,44 @@ public class Bug {
             if (classifier != null) {
                 eval = new Evaluation(validation);
                 eval.crossValidateModel(classifier, validation, 10, new Random(1));
-                //System.out.println(eval.weightedPrecision() + " - " + eval.weightedRecall());
+                //System.out.println(eval.weightedPrecision() + " - " + eval.weightedRecall());             
 
 
-                specificity = eval.weightedRecall();
-                sensitivity = eval.weightedPrecision();
+                if (eval.weightedAreaUnderROC() > 0.75) {
+                    System.out.println("statistics:  " + this.getClassifierType());
+                    for (PeakListRow row : this.getRows()) {
+                        System.out.println(row.getID());
+                    }
+                    System.out.println(eval.weightedPrecision() + " - " + eval.weightedRecall() + " AUC: " + eval.weightedAreaUnderROC());
+               
+                    double sp = 0, tsp = 0, sn = 0, tsn = 0;
 
+                    for (int i = 0; i < 287; i++) {
 
-                //      if (this.getAreaUnderTheCurve() > 0.7) {
-                System.out.println("statistics:  " + this.getClassifierType());
-                for (PeakListRow row : this.getRows()) {
-                    System.out.println(row.getID());
-                }
-                System.out.println(eval.weightedPrecision() + " - " + eval.weightedRecall() + " AUC: " + eval.weightedAreaUnderROC());
-            }
-            // }
-            double sp = 0, tsp = 0, sn = 0, tsn = 0;
+                        try {
+                            double pred = classifier.classifyInstance(validation.instance(i));
 
-            for (int i = 287; i < dataset.getNumberCols(); i++) {
-
-                try {
-                    double pred = classifier.classifyInstance(validation.instance(i));
-
-                    if (validation.instance(i).toString(validation.classIndex()).equals("1")) {
-                        tsp++;
-                        if (validation.classAttribute().value((int) pred).equals("1")) {
-                            sp++;
-                        }
-                    } else {
-                        tsn++;
-                        if (validation.classAttribute().value((int) pred).equals("2")) {
-                            sn++;
+                            if (validation.instance(i).toString(validation.classIndex()).equals("1")) {
+                                tsp++;
+                                if (validation.classAttribute().value((int) pred).equals("1")) {
+                                    sp++;
+                                }
+                            } else {
+                                tsn++;
+                                if (validation.classAttribute().value((int) pred).equals("2")) {
+                                    sn++;
+                                }
+                            }
+                        } catch (Exception eeee) {
                         }
                     }
-                } catch (Exception eeee) {
+                    specificity = sp / tsp;
+                    sensitivity = sn / tsn;
+                    fixValue = true;
+                    System.out.println("spec: " + specificity + " sen: " + sensitivity);
                 }
+
             }
-            specificity = sp / tsp;
-            sensitivity = sn / tsn;
-            fixValue = true;
-            System.out.println("spec: " + specificity + " sen: " + sensitivity);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
