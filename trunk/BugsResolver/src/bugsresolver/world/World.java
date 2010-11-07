@@ -108,66 +108,68 @@ public class World {
 
         death();
 
-      // this.printResult();
+        if (population.size() > 12000) {
+            this.purgeBugs();
+        }
 
-       /* for(Bug bug : population){
+        /* for(Bug bug : population){
 
         }*/
     }
 
     private void movement() {
         for (Bug bug : population) {
-            int direction = rand.nextInt(8);
-            jump = rand.nextInt(20);
+           // int direction = rand.nextInt(8);
+           // jump = rand.nextInt(20);
 
             int x = bug.getx();
             int y = bug.gety();
             this.setBugPosition(bug, x, y);
 
-            switch (direction) {
-            case 0:
-            this.setBugPosition(bug, x + jump, y);
-            break;
-            case 1:
-            this.setBugPosition(bug, x, y);
-            break;
-            case 2:
-            this.setBugPosition(bug, x, y + jump);
-            break;
-            case 3:
-            this.setBugPosition(bug, x, y - jump);
-            break;
-            case 4:
-            this.setBugPosition(bug, x + jump, y + jump);
-            break;
-            case 5:
-            this.setBugPosition(bug, x + jump, y - jump);
-            break;
-            case 6:
-            this.setBugPosition(bug, x - jump, y + jump);
-            break;
-            case 7:
-            this.setBugPosition(bug, x - jump, y - jump);
-            break;
-            }
+          /*  switch (direction) {
+                case 0:
+                    this.setBugPosition(bug, x + jump, y);
+                    break;
+                case 1:
+                    this.setBugPosition(bug, x, y);
+                    break;
+                case 2:
+                    this.setBugPosition(bug, x, y + jump);
+                    break;
+                case 3:
+                    this.setBugPosition(bug, x, y - jump);
+                    break;
+                case 4:
+                    this.setBugPosition(bug, x + jump, y + jump);
+                    break;
+                case 5:
+                    this.setBugPosition(bug, x + jump, y - jump);
+                    break;
+                case 6:
+                    this.setBugPosition(bug, x - jump, y + jump);
+                    break;
+                case 7:
+                    this.setBugPosition(bug, x - jump, y - jump);
+                    break;
+            }*/
 
         }
     }
 
-    private void setBugPosition(Bug bug, int newx, int newy) {
-       /* int newx = rand.nextInt(this.cellsPerSide - 1);
+    private void setBugPosition(Bug bug, int x, int y) {
+        int newx = rand.nextInt(this.cellsPerSide - 1);
         int newy = rand.nextInt(this.cellsPerSide - 1);
         bug.getCell().removeBug(bug);
         bug.setPosition(newx, newy);
         cells[newx][newy].addBug(bug);
-        bug.setCell(cells[newx][newy]);*/
+        bug.setCell(cells[newx][newy]);
 
-        newx = Math.abs(newx) % this.cellsPerSide;
-        newy =  Math.abs(newy) % this.cellsPerSide;
+       /* newx = Math.abs(newx) % this.cellsPerSide;
+        newy = Math.abs(newy) % this.cellsPerSide;
         bug.getCell().removeBug(bug);
         bug.setPosition(newx, newy);
         cells[newx][newy].addBug(bug);
-        bug.setCell(cells[newx][newy]);
+        bug.setCell(cells[newx][newy]);*/
 
 
     }
@@ -204,7 +206,7 @@ public class World {
         }
     }
 
-   public void purgeBugs() {
+    public void purgeBugs() {
         if (population.size() > 3000) {
             Comparator<Bug> c = new Comparator<Bug>() {
 
@@ -219,14 +221,14 @@ public class World {
 
             Collections.sort(population, c);
 
-          //  List<Bug> populationcopy = new ArrayList<Bug>();
+            //  List<Bug> populationcopy = new ArrayList<Bug>();
             for (int i = 3000; i < this.population.size(); i++) {
                 population.get(i).kill();
-               // populationcopy.add(this.population.get(i));
+                // populationcopy.add(this.population.get(i));
                 //System.out.println(this.population.get(i).getSensitivity());
             }
 
-          //  this.population = populationcopy;
+            //  this.population = populationcopy;
             /*try {
             Bug bug = this.population.get(0);
 
@@ -253,7 +255,7 @@ public class World {
         }
         for (Bug bug : deadBugs) {
             this.population.remove(bug);
-        }      
+        }
     }
 
     public class Population implements Comparable<Bug> {
@@ -272,6 +274,4 @@ public class World {
             }
         }
     }
-
-
 }
