@@ -63,10 +63,8 @@ public class World {
         }
     }
 
-    private void setSamplesInCell(Vector<String> samplesNames, Cell cell) {
-        //60 % of the samples are for "training" and 40% for validation. The cells are the validation samples.
-        int numberForTraining = 287;//(int) (samplesNames.size() * 0.6);
-        int pos = rand.nextInt(samplesNames.size() - numberForTraining) + numberForTraining;
+    private void setSamplesInCell(Vector<String> samplesNames, Cell cell) {        
+        int pos = rand.nextInt(287);
         String name = samplesNames.elementAt(pos);
         cell.setParameters(dataset.getType(name), name);
     }
@@ -108,7 +106,7 @@ public class World {
 
         death();
 
-        if (population.size() > 12000) {
+        if (population.size() > 3000) {
             this.purgeBugs();
         }
 

@@ -76,7 +76,7 @@ public class Cell {
             Bug mother = bugsInside.get(0);
             for (Bug father : this.bugsInside) {
                 if (mother != father && father.isClassify() && mother.isClassify()
-                        && mother.getAreaUnderTheCurve() > 0.4 && father.getAreaUnderTheCurve() > 0.4
+                      //  && mother.getAreaUnderTheCurve() > 0.4 && father.getAreaUnderTheCurve() > 0.4
                     //    && mother.getAge()>100 && father.getAge()>100
                         ) {
                     childs.add(new Bug(mother, father, mother.getDataset()));                   
