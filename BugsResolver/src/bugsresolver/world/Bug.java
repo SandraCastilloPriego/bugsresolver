@@ -31,7 +31,6 @@ import weka.classifiers.bayes.NaiveBayesMultinomial;
 import weka.classifiers.bayes.NaiveBayesMultinomialUpdateable;
 import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.Logistic;
-import weka.classifiers.functions.MultilayerPerceptron;
 import weka.classifiers.functions.SMO;
 import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.lazy.IB1;
@@ -80,6 +79,8 @@ public class Bug {
     private int MAXNUMBERGENES = 3;
     Evaluation eval;
     boolean fixValue = false;
+    private double AUC = 0;
+    private static double maxSpec = 0, maxSen = 0;
 
     public Bug(int x, int y, Cell cell, PeakListRow row, BugDataset dataset) {
         rand = new Random();
@@ -92,14 +93,6 @@ public class Bug {
         int n = rand.nextInt(classifiersEnum.values().length);
         this.classifierType = classifiersEnum.values()[n];
         this.classify();
-        // System.out.println(this.classifierType);
-       /* if (this.classifier != null) {
-        List<Integer> ids = new ArrayList<Integer>();
-        ids.add(row.getID());
-        if (ids.size() > 0) {
-        this.prediction(ids);
-        }
-        }*/
     }
 
     public double getAge() {
@@ -126,12 +119,6 @@ public class Bug {
         }
 
         this.classify();
-
-        /* List<Integer> IDs = new ArrayList<Integer>();
-        for (PeakListRow row : this.getRows()) {
-        IDs.add(row.getID());
-        }*/
-        // this.prediction(IDs);
     }
 
     public void assingGenes(Bug parent, int plus) {
@@ -161,11 +148,11 @@ public class Bug {
     }
 
     public double getSensitivity() {
-        return this.sensitivity / this.totalsen;
+        return this.sensitivity;
     }
 
     public double getSpecificity() {
-        return this.specificity / this.totalspec;
+        return this.specificity;
     }
 
     public List<PeakListRow> getRows() {
@@ -234,8 +221,7 @@ public class Bug {
             //Creates the dataset
             data = new Instances("Dataset", attributes, 0);
 
-            int numberForTraining = 287;
-            for (int i = 0; i < numberForTraining; i++) {
+            for (int i = 0; i < 287; i++) {
                 double[] values = new double[data.numAttributes()];
                 String sampleName = dataset.getAllColumnNames().elementAt(i);
                 int cont = 0;
@@ -261,34 +247,30 @@ public class Bug {
 
     public void eat(int nBugs) {
         total++;
-        if (!fixValue) {
-            if (cell.type.equals("1")) {
-                this.totalspec++;
-            } else {
-                this.totalsen++;
-            }
+
+        if (cell.type.equals("1")) {
+            this.totalspec++;
         } else {
-            this.totalsen = 1;
-            this.totalspec = 1;
+            this.totalsen++;
         }
+
         if (isClassify()) {
             wellClassified++;
             this.life += ((this.getAreaUnderTheCurve()) * (1 / nBugs));
-            if (!fixValue) {
-                if (cell.type.equals("1")) {
-                    this.specificity++;
-                } else {
-                    this.sensitivity++;
-                }
+            if (cell.type.equals("1")) {
+                this.spec++;
+            } else {
+                this.sen++;
             }
+
         }
+
+
         if (!fixValue) {
-            if (this.getAge() > 100 && this.getAreaUnderTheCurve() > 0.70) {
-                /* System.out.println("statistics:  " + this.getAge() + " - " + this.getClassifierType());
-                for (PeakListRow row : this.getRows()) {
-                System.out.println(row.getID());
-                }
-                System.out.println(this.getSensitivity() + " - " + this.getSpecificity());*/
+            this.sensitivity = this.sen / this.totalsen;
+            this.specificity = this.spec / this.totalspec;
+            if (this.getAge() > 100 && this.sensitivity > 0.85 && this.specificity > 0.85) {
+                // System.out.println(this.getAreaUnderTheCurve());
                 this.prediction();
             }
         }
@@ -311,37 +293,27 @@ public class Bug {
         Attribute type = new Attribute("class", labels);
         attributes.addElement(type);
         //Creates the dataset
-        Instances train = new Instances("Train Dataset", attributes, 0);
-        double[] values = new double[train.numAttributes()];
+        Instances cellDataset = new Instances("Train Dataset", attributes, 0);
+        double[] values = new double[cellDataset.numAttributes()];
         int cont = 0;
         for (PeakListRow row : rowList) {
             values[cont++] = (Double) row.getPeak(sampleName);
         }
-        values[cont] = train.attribute(train.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
+        values[cont] = cellDataset.attribute(cellDataset.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
         Instance inst = new SparseInstance(1.0, values);
-        train.add(inst);
-        train.setClassIndex(cont);
+        cellDataset.add(inst);
+        cellDataset.setClassIndex(cont);
         try {
-            double pred = classifier.classifyInstance(train.instance(0));
-            // System.out.print(train.instance(0).toString(train.classIndex()) + " - ");
-            //System.out.println(train.classAttribute().value((int) pred));
-
-            if (cell.type.equals(train.classAttribute().value((int) pred))) {
+            double pred = classifier.classifyInstance(cellDataset.instance(0));
+            if (cell.type.equals(cellDataset.classAttribute().value((int) pred))) {
                 return true;
             } else {
                 return false;
             }
-
-
         } catch (Exception ex) {
             Logger.getLogger(Bug.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
-
-        /* for (Object prediction : eval.predictions().toArray()) {
-        System.out.println(prediction);
-        }
-        return false;*/
     }
 
     private Classifier setClassifier() {
@@ -356,8 +328,6 @@ public class Bug {
                 return new NaiveBayesMultinomialUpdateable();
             case NaiveBayesUpdateable:
                 return new NaiveBayesUpdateable();
-            // case MultilayerPerceptron:
-            //      return new MultilayerPerceptron();
             case RandomForest:
                 return new RandomForest();
             case RandomCommittee:
@@ -408,22 +378,26 @@ public class Bug {
     }
 
     public double getAreaUnderTheCurve() {
+        //  if (!this.fixValue) {
         double value = (this.getSpecificity() + this.getSensitivity()) / 2;
         if (value != Double.NaN) {
             return value;
         } else {
             return 0;
         }
+        /*  } else {
+        return this.AUC;
+        }*/
     }
 
     private void prediction() {
         try {
 
-            FastVector attributes = new FastVector();
+            /*   FastVector attributes = new FastVector();
 
             for (int i = 0; i < this.rowList.size(); i++) {
-                Attribute weight = new Attribute("weight" + i);
-                attributes.addElement(weight);
+            Attribute weight = new Attribute("weight" + i);
+            attributes.addElement(weight);
             }
 
             FastVector labels = new FastVector();
@@ -436,62 +410,97 @@ public class Bug {
 
             //Creates the dataset
             validation = new Instances("Dataset2", attributes, 0);
+            for (int i = 0; i < 287; i++) {
+            double[] values = new double[validation.numAttributes()];
+            String sampleName = dataset.getAllColumnNames().elementAt(i);
+            int cont = 0;
 
-            int numberForTraining =0;// (int) (numberOfPeaks * 0.6);
-            for (int i = numberForTraining; i < 287/*dataset.getNumberCols()*/; i++) {
-                double[] values = new double[validation.numAttributes()];
-                String sampleName = dataset.getAllColumnNames().elementAt(i);
-                int cont = 0;
-
-                for (PeakListRow row : this.rowList) {
-                    values[cont++] = (Double) row.getPeak(sampleName);
-                }
-
-                values[cont] = validation.attribute(validation.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
-
-                Instance inst = new SparseInstance(1.0, values);
-                validation.add(inst);
+            for (PeakListRow row : this.rowList) {
+            values[cont++] = (Double) row.getPeak(sampleName);
             }
 
-            validation.setClass(type);
+            values[cont] = validation.attribute(validation.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
+
+            Instance inst = new SparseInstance(1.0, values);
+            validation.add(inst);
+            }
+            validation.setClass(type);*/
+
+
             if (classifier != null) {
-                eval = new Evaluation(validation);
-                eval.crossValidateModel(classifier, validation, 10, new Random(1));
-                //System.out.println(eval.weightedPrecision() + " - " + eval.weightedRecall());             
+                //   eval = new Evaluation(this.data);
+                // eval.crossValidateModel(classifier, this.data, 10, new Random(1));
+                //System.out.println(eval.weightedAreaUnderROC());
+                //  this.AUC = eval.weightedAreaUnderROC();
+                // if (eval.weightedAreaUnderROC() > 0.58) {
 
+                double sp = 0, tsp = 0, sn = 0, tsn = 0;
 
-                if (eval.weightedAreaUnderROC() > 0.75) {
-                    System.out.println("statistics:  " + this.getClassifierType());
+                for (int i = 0; i < 287; i++) {
+
+                    try {
+                        double pred = classifier.classifyInstance(this.data.instance(i));
+
+                        if (this.data.instance(i).toString(this.data.classIndex()).equals("1")) {
+                            tsp++;
+                            if (this.data.classAttribute().value((int) pred).equals("1")) {
+                                sp++;
+                            }
+                        } else {
+                            tsn++;
+                            if (this.data.classAttribute().value((int) pred).equals("2")) {
+                                sn++;
+                            }
+                        }
+                    } catch (Exception eeee) {
+                    }
+                    //}
+                    specificity = sp / tsp;
+                    sensitivity = sn / tsn;
+
+                    fixValue = true;
+
+                    //   System.out.println("training spec: " + specificity + " sen: " + sensitivity);
+
+                    /* System.out.println("statistics:  " + this.getClassifierType());
                     for (PeakListRow row : this.getRows()) {
-                        System.out.println(row.getID());
+                    System.out.println(row.getID());
                     }
                     System.out.println(eval.weightedPrecision() + " - " + eval.weightedRecall() + " AUC: " + eval.weightedAreaUnderROC());
-               
-                    double sp = 0, tsp = 0, sn = 0, tsn = 0;
 
-                    for (int i = 0; i < 287; i++) {
+                    System.out.println("training spec: " + specificity + " sen: " + sensitivity);*/
+                    validate();
 
-                        try {
-                            double pred = classifier.classifyInstance(validation.instance(i));
+                    // sp = 0;
+                    //  tsp = 0;
+                    //  sn = 0;
+                    //  tsn = 0;
 
-                            if (validation.instance(i).toString(validation.classIndex()).equals("1")) {
-                                tsp++;
-                                if (validation.classAttribute().value((int) pred).equals("1")) {
-                                    sp++;
-                                }
-                            } else {
-                                tsn++;
-                                if (validation.classAttribute().value((int) pred).equals("2")) {
-                                    sn++;
-                                }
-                            }
-                        } catch (Exception eeee) {
-                        }
+
+
+                    /*   for (int i = 287; i < this.dataset.getNumberCols(); i++) {
+
+                    try {
+                    double pred = classifier.classifyInstance(validation.instance(i));
+
+                    if (validation.instance(i).toString(validation.classIndex()).equals("1")) {
+                    tsp++;
+                    if (validation.classAttribute().value((int) pred).equals("1")) {
+                    sp++;
+                    }
+                    } else {
+                    tsn++;
+                    if (validation.classAttribute().value((int) pred).equals("2")) {
+                    sn++;
+                    }
+                    }
+                    } catch (Exception eeee) {
+                    }
                     }
                     specificity = sp / tsp;
                     sensitivity = sn / tsn;
-                    fixValue = true;
-                    System.out.println("spec: " + specificity + " sen: " + sensitivity);
+
+                    System.out.println("validation spec: " + specificity + " sen: " + sensitivity);*/
                 }
 
             }
@@ -499,5 +508,74 @@ public class Bug {
             ex.printStackTrace();
         }
 
+    }
+
+    public void validate() {
+        double sp = 0, tsp = 0, sn = 0, tsn = 0;
+        FastVector attributes = new FastVector();
+
+        for (int i = 0; i < this.rowList.size(); i++) {
+            Attribute weight = new Attribute("weight" + i);
+            attributes.addElement(weight);
+        }
+
+        FastVector labels = new FastVector();
+
+        labels.addElement("1");
+        labels.addElement("2");
+        Attribute type = new Attribute("class", labels);
+
+        attributes.addElement(type);
+
+        //Creates the dataset
+        validation = new Instances("Dataset2", attributes, 0);
+        for (int i = 287; i < this.dataset.getNumberCols(); i++) {
+            double[] values = new double[validation.numAttributes()];
+            String sampleName = dataset.getAllColumnNames().elementAt(i);
+            int cont = 0;
+
+            for (PeakListRow row : this.rowList) {
+                values[cont++] = (Double) row.getPeak(sampleName);
+            }
+
+            values[cont] = validation.attribute(validation.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
+
+            Instance inst = new SparseInstance(1.0, values);
+            validation.add(inst);
+        }
+        validation.setClass(type);
+
+        for (int i = 0; i < this.dataset.getNumberCols() - 287; i++) {
+
+            try {
+                double pred = classifier.classifyInstance(validation.instance(i));
+
+                if (validation.instance(i).toString(validation.classIndex()).equals("1")) {
+                    tsp++;
+                    if (validation.classAttribute().value((int) pred).equals("1")) {
+                        sp++;
+                    }
+                } else {
+                    tsn++;
+                    if (validation.classAttribute().value((int) pred).equals("2")) {
+                        sn++;
+                    }
+                }
+            } catch (Exception eeee) {
+            }
+        }
+        double specificity2 = sp / tsp;
+        double sensitivity2 = sn / tsn;
+
+        if (specificity2 > maxSpec && sensitivity2 > 0.53) {
+
+            System.out.println("statistics:  " + this.getClassifierType());
+            for (PeakListRow row : this.getRows()) {
+                System.out.println(row.getID());
+            }
+            System.out.println("validation spec: " + specificity2 + " sen: " + sensitivity2);
+            maxSen = sensitivity2;
+            maxSpec = specificity2;
+        }
     }
 }
