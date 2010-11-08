@@ -92,9 +92,9 @@ public class MainWindows extends javax.swing.JFrame {
     /** Creates new form MainWindows */
     public MainWindows() {
         initComponents();
-        BasicFilesParserCSV parser = new BasicFilesParserCSV("/home/bicha/Escritorio/test2.csv");
-        parser.fillData();
-        validate = parser.getDataset();
+       // BasicFilesParserCSV parser = new BasicFilesParserCSV("/home/scsandra/Desktop/test2.csv");
+       // parser.fillData();
+     //   validate = parser.getDataset();
         ids = new ArrayList<Integer>();
     }
 
@@ -248,8 +248,8 @@ public class MainWindows extends javax.swing.JFrame {
                         this.addId(row.getID());
                     }
 
-                    this.classify(ids);
-                    this.prediction(ids);
+                  //  this.classify(ids);
+                  //  this.prediction(ids);
                     for (PeakListRow row : bug.getRows()) {
                         System.out.println(row.getID());
                     }
