@@ -66,13 +66,13 @@ public class Bug {
     private Cell cell;
     private int x, y;
     private List<PeakListRow> rowList;
-    private double life = 30;
+    private double life = 100;
     private BugDataset dataset;
     private Classifier classifier;
-    private classifiersEnum classifierType;    
+    private classifiersEnum classifierType;
     private double wellClassified, total;
-    private double sensitivity;
-    private double specificity;
+    private double sensitivity = 0;
+    private double specificity = 0;
     double spec = 0, sen = 0, totalspec = 0, totalsen = 0;
     private Random rand;
     private int MAXNUMBERGENES = 3;
@@ -112,7 +112,9 @@ public class Bug {
 
         this.orderPurgeGenes();
 
-        if (mother.getAreaUnderTheCurve() > father.getAreaUnderTheCurve()) {
+
+
+        if (rand.nextInt(1) == 0) {
             this.classifierType = mother.getClassifierType();
         } else {
             this.classifierType = father.getClassifierType();
@@ -149,14 +151,14 @@ public class Bug {
 
     public double getSensitivity() {
         if (this.sensitivity == Double.NaN) {
-            return 0;
+            return 0.0;
         }
         return this.sensitivity;
     }
 
     public double getSpecificity() {
         if (this.specificity == Double.NaN) {
-            return 0;
+            return 0.0;
         }
         return this.specificity;
     }
@@ -195,11 +197,11 @@ public class Bug {
     }
 
     boolean isDead() {
-        life -= ((1 - this.getAreaUnderTheCurve()) * 3);
+        life -= 1;
         if (this.rowList.size() == 0) {
             life = 0;
         }
-        if (this.life < 1) {
+        if (this.life < 1 || this.life == Double.NaN) {
             return true;
         } else {
             return false;
@@ -208,7 +210,7 @@ public class Bug {
 
     private void classify() {
         try {
-            Instances data = getDataset(30, 287);
+            Instances data = getDataset(60, 287);
             classifier = setClassifier();
             if (classifier != null) {
                 classifier.buildClassifier(data);
@@ -216,50 +218,6 @@ public class Bug {
         } catch (Exception ex) {
             Logger.getLogger(Bug.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    private Instances getDataset(int initSample, int finalSample) {
-        try {
-
-            FastVector attributes = new FastVector();
-
-            for (int i = 0; i < rowList.size(); i++) {
-                Attribute weight = new Attribute("weight" + i);
-                attributes.addElement(weight);
-            }
-
-            FastVector labels = new FastVector();
-
-            labels.addElement("1");
-            labels.addElement("2");
-            Attribute type = new Attribute("class", labels);
-
-            attributes.addElement(type);
-
-            //Creates the dataset
-            Instances data = new Instances("Dataset", attributes, 0);
-
-            for (int i = initSample; i < finalSample; i++) {
-                double[] values = new double[data.numAttributes()];
-                String sampleName = dataset.getAllColumnNames().elementAt(i);
-                int cont = 0;
-                for (PeakListRow row : rowList) {
-                    values[cont++] = (Double) row.getPeak(sampleName);
-                }
-                values[cont] = data.attribute(data.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
-
-                Instance inst = new SparseInstance(1.0, values);
-                data.add(inst);
-            }
-
-            data.setClass(type);
-
-            return data;
-        } catch (Exception ex) {
-            Logger.getLogger(Bug.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
-
     }
 
     public void eat(int nBugs) {
@@ -273,7 +231,8 @@ public class Bug {
 
         if (isClassify()) {
             wellClassified++;
-            this.life += ((this.getAreaUnderTheCurve()) * (1 / nBugs));
+
+            this.life += this.getAreaUnderTheCurve();
             if (cell.type.equals("1")) {
                 this.spec++;
             } else {
@@ -287,7 +246,7 @@ public class Bug {
             this.sensitivity = this.sen / this.totalsen;
             this.specificity = this.spec / this.totalspec;
             // System.out.println(this.sensitivity + " - " + this.specificity);
-            if (this.getAge() > 100 && this.sensitivity > 0.7 && this.specificity > 0.7) {
+            if (this.getAge() > 100 && this.sensitivity > 0.7 && this.specificity > 0.6) {
                 // System.out.println(this.getAreaUnderTheCurve());
                 this.prediction();
             }
@@ -412,10 +371,10 @@ public class Bug {
         try {
 
             if (classifier != null) {
-                Instances data = getDataset(0, 30);
+                Instances data = getDataset(0, 60);
                 double sp = 0, tsp = 0, sn = 0, tsn = 0;
 
-                for (int i = 0; i < 30; i++) {
+                for (int i = 0; i < 60; i++) {
 
                     try {
                         double pred = classifier.classifyInstance(data.instance(i));
@@ -437,10 +396,10 @@ public class Bug {
                     specificity = sp / tsp;
                     sensitivity = sn / tsn;
 
-                    if (specificity > maxSpecTraining && sensitivity > 0.53) {
-                        System.out.println("training spec: " + specificity + " sen: " + sensitivity);
-                        maxSpecTraining = specificity;
-                    }
+                    /*   if (specificity > maxSpecTraining && sensitivity > 0.53) {
+                    System.out.println("training spec: " + specificity + " sen: " + sensitivity);
+                    maxSpecTraining = specificity;
+                    }*/
 
                     fixValue = true;
                     validate();
@@ -481,7 +440,7 @@ public class Bug {
         double specificity2 = sp / tsp;
         double sensitivity2 = sn / tsn;
 
-        if (specificity2 > maxSpec && sensitivity2 > 0.53) {
+        if (specificity2 > 0.69 && sensitivity2 > 0.53) {
 
             System.out.println("statistics:  " + this.getClassifierType());
             for (PeakListRow row : this.getRows()) {
@@ -489,8 +448,52 @@ public class Bug {
             }
             System.out.println("training spec: " + specificity + " sen: " + sensitivity);
             System.out.println("validation spec: " + specificity2 + " sen: " + sensitivity2);
-            maxSen = sensitivity2;
-            maxSpec = specificity2;
+            //  maxSen = sensitivity2;
+            //maxSpec = specificity2;
         }
+    }
+
+    private Instances getDataset(int initSample, int finalSample) {
+        try {
+
+            FastVector attributes = new FastVector();
+
+            for (int i = 0; i < rowList.size(); i++) {
+                Attribute weight = new Attribute("weight" + i);
+                attributes.addElement(weight);
+            }
+
+            FastVector labels = new FastVector();
+
+            labels.addElement("1");
+            labels.addElement("2");
+            Attribute type = new Attribute("class", labels);
+
+            attributes.addElement(type);
+
+            //Creates the dataset
+            Instances data = new Instances("Dataset", attributes, 0);
+
+            for (int i = initSample; i < finalSample; i++) {
+                double[] values = new double[data.numAttributes()];
+                String sampleName = dataset.getAllColumnNames().elementAt(i);
+                int cont = 0;
+                for (PeakListRow row : rowList) {
+                    values[cont++] = (Double) row.getPeak(sampleName);
+                }
+                values[cont] = data.attribute(data.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
+
+                Instance inst = new SparseInstance(1.0, values);
+                data.add(inst);
+            }
+
+            data.setClass(type);
+
+            return data;
+        } catch (Exception ex) {
+            Logger.getLogger(Bug.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+
     }
 }
