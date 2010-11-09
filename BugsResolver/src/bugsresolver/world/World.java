@@ -64,7 +64,7 @@ public class World {
     }
 
     private void setSamplesInCell(Vector<String> samplesNames, Cell cell) {        
-        int pos = rand.nextInt(30);
+        int pos = rand.nextInt(60);
         String name = samplesNames.elementAt(pos);
         cell.setParameters(dataset.getType(name), name);
     }
