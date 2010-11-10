@@ -66,7 +66,7 @@ public class Bug {
     private Cell cell;
     private int x, y;
     private List<PeakListRow> rowList;
-    private double life = 100;
+    private double life = 300;
     private BugDataset dataset;
     private Classifier classifier;
     private classifiersEnum classifierType;
@@ -81,6 +81,7 @@ public class Bug {
     private double AUC = 0;
     private static double maxSpec = 0, maxSen = 0;
     private static double maxSpecTraining = 0;
+    private double food = 0;
 
     public Bug(int x, int y, Cell cell, PeakListRow row, BugDataset dataset) {
         rand = new Random();
@@ -134,10 +135,20 @@ public class Bug {
     public void orderPurgeGenes() {
         int removeGenes = this.rowList.size() - this.MAXNUMBERGENES;
         if (removeGenes > 0) {
-            for (int i = 0; i < removeGenes; i++) {
+            int mutation = this.mutation();
+            for (int i = 0; i < removeGenes + mutation; i++) {
                 int index = rand.nextInt(this.rowList.size() - 1);
                 this.rowList.remove(index);
             }
+        }
+    }
+
+    public int mutation() {
+        int probability = rand.nextInt(10);
+        if (probability == 1) {
+            return rand.nextInt(this.MAXNUMBERGENES - 1);
+        } else {
+            return 0;
         }
     }
 
@@ -232,7 +243,7 @@ public class Bug {
         if (isClassify()) {
             wellClassified++;
 
-            this.life += this.getAreaUnderTheCurve();
+            this.life += food;
             if (cell.type.equals("1")) {
                 this.spec++;
             } else {
@@ -245,11 +256,14 @@ public class Bug {
         if (!fixValue) {
             this.sensitivity = this.sen / this.totalsen;
             this.specificity = this.spec / this.totalspec;
+            this.prediction();
+            this.validate();
+
             // System.out.println(this.sensitivity + " - " + this.specificity);
-            if (this.getAge() > 100 && this.sensitivity > 0.7 && this.specificity > 0.6) {
-                // System.out.println(this.getAreaUnderTheCurve());
-                this.prediction();
-            }
+            //if (this.getAge() > 100 && this.sensitivity > 0.7 && this.specificity > 0.6) {
+            // System.out.println(this.getAreaUnderTheCurve());
+            //    this.prediction();
+            // }
         }
     }
 
@@ -396,13 +410,14 @@ public class Bug {
                     specificity = sp / tsp;
                     sensitivity = sn / tsn;
 
+
                     /*   if (specificity > maxSpecTraining && sensitivity > 0.53) {
                     System.out.println("training spec: " + specificity + " sen: " + sensitivity);
                     maxSpecTraining = specificity;
                     }*/
 
                     fixValue = true;
-                    validate();
+
 
                 }
 
@@ -440,7 +455,9 @@ public class Bug {
         double specificity2 = sp / tsp;
         double sensitivity2 = sn / tsn;
 
-        if (specificity2 > 0.69 && sensitivity2 > 0.53) {
+        food = sensitivity;
+
+        if (specificity2 > 0.69 && sensitivity2 > 0.58) {
 
             System.out.println("statistics:  " + this.getClassifierType());
             for (PeakListRow row : this.getRows()) {
