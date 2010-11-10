@@ -74,9 +74,10 @@ public class Cell {
         if (bugsInside.size() > 1) {
             Collections.sort(bugsInside, c);
             Bug mother = bugsInside.get(0);
+          //  System.out.println(mother.getAreaUnderTheCurve());
             for (Bug father : this.bugsInside) {
                 if (mother != father && father.isClassify() && mother.isClassify()
-                        //    && mother.getAreaUnderTheCurve() > 0.4 && father.getAreaUnderTheCurve() > 0.4
+                           && mother.getAreaUnderTheCurve() > 0.5 && father.getAreaUnderTheCurve() > 0.5
                         //&& mother.getAge() > 25 && father.getAge() > 25
                         ) {
                     childs.add(new Bug(mother, father, mother.getDataset()));
