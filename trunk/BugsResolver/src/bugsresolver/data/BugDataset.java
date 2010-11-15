@@ -167,4 +167,17 @@ public interface BugDataset {
      * @return type
      */
     public String getType(String sampleName);
+
+    /**
+     * Set the samples used for the training.
+     * @param sampleName
+     */
+    public void setSampleForTraining(String sampleName);
+
+    /**
+     * True if the sample is used for training.
+     * @param sampleName
+     * @return
+     */
+    public boolean isForTraining(String sampleName);
 }

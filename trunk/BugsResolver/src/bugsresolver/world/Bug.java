@@ -25,13 +25,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
-import weka.classifiers.bayes.ComplementNaiveBayes;
+/*import weka.classifiers.bayes.ComplementNaiveBayes;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.bayes.NaiveBayesMultinomial;
 import weka.classifiers.bayes.NaiveBayesMultinomialUpdateable;
-import weka.classifiers.bayes.NaiveBayesUpdateable;
+import weka.classifiers.bayes.NaiveBayesUpdateable;*/
 import weka.classifiers.functions.Logistic;
-import weka.classifiers.functions.SMO;
+/*import weka.classifiers.functions.SMO;
 import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.lazy.IB1;
 import weka.classifiers.lazy.KStar;
@@ -50,7 +50,7 @@ import weka.classifiers.trees.LMT;
 import weka.classifiers.trees.REPTree;
 import weka.classifiers.trees.RandomForest;
 import weka.classifiers.trees.RandomTree;
-import weka.classifiers.trees.lmt.LogisticBase;
+import weka.classifiers.trees.lmt.LogisticBase;*/
 import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
@@ -66,7 +66,7 @@ public class Bug {
     private Cell cell;
     private int x, y;
     private List<PeakListRow> rowList;
-    private double life = 300;
+    private double life = 3000;
     private BugDataset dataset;
     private Classifier classifier;
     private classifiersEnum classifierType;
@@ -78,9 +78,9 @@ public class Bug {
     private int MAXNUMBERGENES = 3;
     Evaluation eval;
     boolean fixValue = false;
-    private double AUC = 0;
+    /* private double AUC = 0;
     private static double maxSpec = 0, maxSen = 0;
-    private static double maxSpecTraining = 0;
+    private static double maxSpecTraining = 0;*/
     private double food = 0;
 
     public Bug(int x, int y, Cell cell, PeakListRow row, BugDataset dataset) {
@@ -112,8 +112,6 @@ public class Bug {
         this.assingGenes(father, 0);
 
         this.orderPurgeGenes();
-
-
 
         if (rand.nextInt(1) == 0) {
             this.classifierType = mother.getClassifierType();
@@ -221,7 +219,7 @@ public class Bug {
 
     private void classify() {
         try {
-            Instances data = getDataset(60, 287);
+            Instances data = getWekaDataset();
             classifier = setClassifier();
             if (classifier != null) {
                 classifier.buildClassifier(data);
@@ -243,7 +241,7 @@ public class Bug {
         if (isClassify()) {
             wellClassified++;
 
-            this.life += food;
+            this.life += 0.9;
             if (cell.type.equals("1")) {
                 this.spec++;
             } else {
@@ -253,18 +251,18 @@ public class Bug {
         }
 
 
-        if (!fixValue) {
+      /*  if (!fixValue) {
             this.sensitivity = this.sen / this.totalsen;
             this.specificity = this.spec / this.totalspec;
-            this.prediction();
-            this.validate();
+            // this.prediction();
+            // this.validate();
 
             // System.out.println(this.sensitivity + " - " + this.specificity);
             //if (this.getAge() > 100 && this.sensitivity > 0.7 && this.specificity > 0.6) {
             // System.out.println(this.getAreaUnderTheCurve());
             //    this.prediction();
             // }
-        }
+        }*/
     }
 
     public void kill() {
@@ -308,64 +306,65 @@ public class Bug {
     }
 
     private Classifier setClassifier() {
-        switch (this.classifierType) {
-            case Logistic:
-                return new Logistic();
-            case LogisticBase:
-                return new LogisticBase();
-            case LogitBoost:
-                return new LogitBoost();
-            case NaiveBayesMultinomialUpdateable:
-                return new NaiveBayesMultinomialUpdateable();
-            case NaiveBayesUpdateable:
-                return new NaiveBayesUpdateable();
-            case RandomForest:
-                return new RandomForest();
-            case RandomCommittee:
-                return new RandomCommittee();
-            case RandomTree:
-                return new RandomTree();
-            case ZeroR:
-                return new ZeroR();
-            case Stacking:
-                return new Stacking();
-            case AdaBoostM1:
-                return new AdaBoostM1();
-            case Bagging:
-                return new Bagging();
-            case ComplementNaiveBayes:
-                return new ComplementNaiveBayes();
-            case IB1:
-                return new IB1();
-            case J48:
-                return new J48();
-            case KStar:
-                return new KStar();
-            case LMT:
-                return new LMT();
-            case MultiScheme:
-                return new MultiScheme();
-            case NaiveBayes:
-                return new NaiveBayes();
-            case NaiveBayesMultinomial:
-                return new NaiveBayesMultinomial();
-            case OneR:
-                return new OneR();
-            case PART:
-                return new PART();
-            case RandomSubSpace:
-                return new RandomSubSpace();
-            case REPTree:
-                return new REPTree();
-            case SimpleLogistic:
-                return new SimpleLogistic();
-            case SMO:
-                return new SMO();
-            default:
-                life = 0;
-                return null;
-        }
+        /* switch (this.classifierType) {
+        case Logistic:
+        return new Logistic();
+        case LogisticBase:
+        return new LogisticBase();
+        case LogitBoost:
+        return new LogitBoost();
+        case NaiveBayesMultinomialUpdateable:
+        return new NaiveBayesMultinomialUpdateable();
+        case NaiveBayesUpdateable:
+        return new NaiveBayesUpdateable();
+        case RandomForest:
+        return new RandomForest();
+        case RandomCommittee:
+        return new RandomCommittee();
+        case RandomTree:
+        return new RandomTree();
+        case ZeroR:
+        return new ZeroR();
+        case Stacking:
+        return new Stacking();
+        case AdaBoostM1:
+        return new AdaBoostM1();
+        case Bagging:
+        return new Bagging();
+        case ComplementNaiveBayes:
+        return new ComplementNaiveBayes();
+        case IB1:
+        return new IB1();
+        case J48:
+        return new J48();
+        case KStar:
+        return new KStar();
+        case LMT:
+        return new LMT();
+        case MultiScheme:
+        return new MultiScheme();
+        case NaiveBayes:
+        return new NaiveBayes();
+        case NaiveBayesMultinomial:
+        return new NaiveBayesMultinomial();
+        case OneR:
+        return new OneR();
+        case PART:
+        return new PART();
+        case RandomSubSpace:
+        return new RandomSubSpace();
+        case REPTree:
+        return new REPTree();
+        case SimpleLogistic:
+        return new SimpleLogistic();
+        case SMO:
+        return new SMO();
+        default:
+        life = 0;
+        return null;
+        }*/
 
+        return new Logistic();
     }
 
     public double getAreaUnderTheCurve() {
@@ -381,96 +380,138 @@ public class Bug {
         }*/
     }
 
-    private void prediction() {
-        try {
+    /*    private void prediction() {
+    try {
 
-            if (classifier != null) {
-                Instances data = getDataset(0, 60);
-                double sp = 0, tsp = 0, sn = 0, tsn = 0;
+    if (classifier != null) {
+    Instances data = getDataset(0, 60);
+    double sp = 0, tsp = 0, sn = 0, tsn = 0;
 
-                for (int i = 0; i < 60; i++) {
+    for (int i = 0; i < 60; i++) {
 
-                    try {
-                        double pred = classifier.classifyInstance(data.instance(i));
+    try {
+    double pred = classifier.classifyInstance(data.instance(i));
 
-                        if (data.instance(i).toString(data.classIndex()).equals("1")) {
-                            tsp++;
-                            if (data.classAttribute().value((int) pred).equals("1")) {
-                                sp++;
-                            }
-                        } else {
-                            tsn++;
-                            if (data.classAttribute().value((int) pred).equals("2")) {
-                                sn++;
-                            }
-                        }
-                    } catch (Exception eeee) {
-                    }
+    if (data.instance(i).toString(data.classIndex()).equals("1")) {
+    tsp++;
+    if (data.classAttribute().value((int) pred).equals("1")) {
+    sp++;
+    }
+    } else {
+    tsn++;
+    if (data.classAttribute().value((int) pred).equals("2")) {
+    sn++;
+    }
+    }
+    } catch (Exception eeee) {
+    }
 
-                    specificity = sp / tsp;
-                    sensitivity = sn / tsn;
-
-
-                    /*   if (specificity > maxSpecTraining && sensitivity > 0.53) {
-                    System.out.println("training spec: " + specificity + " sen: " + sensitivity);
-                    maxSpecTraining = specificity;
-                    }*/
-
-                    fixValue = true;
+    specificity = sp / tsp;
+    sensitivity = sn / tsn;
 
 
-                }
+    /*   if (specificity > maxSpecTraining && sensitivity > 0.53) {
+    System.out.println("training spec: " + specificity + " sen: " + sensitivity);
+    maxSpecTraining = specificity;
+    }*/
 
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    /*    fixValue = true;
+
+
+    }
+
+    }
+    } catch (Exception ex) {
+    ex.printStackTrace();
+    }
 
     }
 
     public void validate() {
-        double sp = 0, tsp = 0, sn = 0, tsn = 0;
+    double sp = 0, tsp = 0, sn = 0, tsn = 0;
 
-        Instances data = this.getDataset(287, this.dataset.getNumberCols());
+    Instances data = this.getDataset(287, this.dataset.getNumberCols());
 
-        for (int i = 0; i < this.dataset.getNumberCols() - 287; i++) {
+    for (int i = 0; i < this.dataset.getNumberCols() - 287; i++) {
 
-            try {
-                double pred = classifier.classifyInstance(data.instance(i));
+    try {
+    double pred = classifier.classifyInstance(data.instance(i));
 
-                if (data.instance(i).toString(data.classIndex()).equals("1")) {
-                    tsp++;
-                    if (data.classAttribute().value((int) pred).equals("1")) {
-                        sp++;
-                    }
-                } else {
-                    tsn++;
-                    if (data.classAttribute().value((int) pred).equals("2")) {
-                        sn++;
-                    }
-                }
-            } catch (Exception eeee) {
-            }
-        }
-        double specificity2 = sp / tsp;
-        double sensitivity2 = sn / tsn;
+    if (data.instance(i).toString(data.classIndex()).equals("1")) {
+    tsp++;
+    if (data.classAttribute().value((int) pred).equals("1")) {
+    sp++;
+    }
+    } else {
+    tsn++;
+    if (data.classAttribute().value((int) pred).equals("2")) {
+    sn++;
+    }
+    }
+    } catch (Exception eeee) {
+    }
+    }
+    double specificity2 = sp / tsp;
+    double sensitivity2 = sn / tsn;
 
-        food = sensitivity;
+    food = sensitivity;
 
-        if (specificity2 > 0.69 && sensitivity2 > 0.58) {
+    if (specificity2 > 0.69 && sensitivity2 > 0.58 && this.specificity > specificity2 && this.sensitivity > sensitivity2) {
 
-            System.out.println("statistics:  " + this.getClassifierType());
-            for (PeakListRow row : this.getRows()) {
-                System.out.println(row.getID());
-            }
-            System.out.println("training spec: " + specificity + " sen: " + sensitivity);
-            System.out.println("validation spec: " + specificity2 + " sen: " + sensitivity2);
-            //  maxSen = sensitivity2;
-            //maxSpec = specificity2;
-        }
+    System.out.println("statistics:  " + this.getClassifierType());
+    for (PeakListRow row : this.getRows()) {
+    System.out.println(row.getID());
+    }
+    System.out.println("training spec: " + specificity + " sen: " + sensitivity);
+    System.out.println("validation spec: " + specificity2 + " sen: " + sensitivity2);
+    //  maxSen = sensitivity2;
+    //maxSpec = specificity2;
+    }
+    }
+    private Instances getDataset(int initSample, int finalSample) {
+    try {
+
+    FastVector attributes = new FastVector();
+
+    for (int i = 0; i < rowList.size(); i++) {
+    Attribute weight = new Attribute("weight" + i);
+    attributes.addElement(weight);
     }
 
-    private Instances getDataset(int initSample, int finalSample) {
+    FastVector labels = new FastVector();
+
+    labels.addElement("1");
+    labels.addElement("2");
+    Attribute type = new Attribute("class", labels);
+
+    attributes.addElement(type);
+
+    //Creates the dataset
+    Instances data = new Instances("Dataset", attributes, 0);
+
+    for (int i = initSample; i < finalSample; i++) {
+    double[] values = new double[data.numAttributes()];
+    String sampleName = dataset.getAllColumnNames().elementAt(i);
+    int cont = 0;
+    for (PeakListRow row : rowList) {
+    values[cont++] = (Double) row.getPeak(sampleName);
+    }
+    values[cont] = data.attribute(data.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
+
+    Instance inst = new SparseInstance(1.0, values);
+    data.add(inst);
+    }
+
+    data.setClass(type);
+
+    return data;
+    } catch (Exception ex) {
+    Logger.getLogger(Bug.class.getName()).log(Level.SEVERE, null, ex);
+    return null;
+    }
+
+    }*/
+    private Instances getWekaDataset() {
         try {
 
             FastVector attributes = new FastVector();
@@ -491,17 +532,19 @@ public class Bug {
             //Creates the dataset
             Instances data = new Instances("Dataset", attributes, 0);
 
-            for (int i = initSample; i < finalSample; i++) {
-                double[] values = new double[data.numAttributes()];
+            for (int i = 0; i < this.dataset.getNumberCols(); i++) {
                 String sampleName = dataset.getAllColumnNames().elementAt(i);
-                int cont = 0;
-                for (PeakListRow row : rowList) {
-                    values[cont++] = (Double) row.getPeak(sampleName);
-                }
-                values[cont] = data.attribute(data.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
+                if (!this.dataset.isForTraining(sampleName)) {
+                    double[] values = new double[data.numAttributes()];
+                    int cont = 0;
+                    for (PeakListRow row : rowList) {
+                        values[cont++] = (Double) row.getPeak(sampleName);
+                    }
+                    values[cont] = data.attribute(data.numAttributes() - 1).indexOfValue(this.dataset.getType(sampleName));
 
-                Instance inst = new SparseInstance(1.0, values);
-                data.add(inst);
+                    Instance inst = new SparseInstance(1.0, values);
+                    data.add(inst);
+                }
             }
 
             data.setClass(type);

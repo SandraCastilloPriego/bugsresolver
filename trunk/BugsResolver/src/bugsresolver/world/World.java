@@ -38,6 +38,7 @@ public class World {
     int cellsPerSide;
     int numberOfCells;
     int jump = 1;
+    int cicleNumber = 0;
 
     public World(BugDataset dataset, int cellsPerSide) {
         this.dataset = dataset;
@@ -55,7 +56,7 @@ public class World {
                     this.setSamplesInCell(samplesNames, cells[i][j]);
                 }
             }
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 10; i++) {
                 for (PeakListRow row : dataset.getRows()) {
                     this.addBug(row);
                 }
@@ -63,10 +64,17 @@ public class World {
         }
     }
 
-    private void setSamplesInCell(Vector<String> samplesNames, Cell cell) {        
-        int pos = rand.nextInt(60);
+    private void setSamplesInCell(Vector<String> samplesNames, Cell cell) {
+        int pos = rand.nextInt(30);
         String name = samplesNames.elementAt(pos);
+        this.dataset.isForTraining(name);
         cell.setParameters(dataset.getType(name), name);
+    }
+
+    public synchronized void addMoreBugs() {
+        for (PeakListRow row : dataset.getRows()) {
+            this.addBug(row);
+        }
     }
 
     private void addBug(PeakListRow row) {
@@ -110,6 +118,13 @@ public class World {
             this.purgeBugs();
         }
 
+       /* if (cicleNumber > 2000) {
+            this.addMoreBugs();
+            cicleNumber = 0;
+        }
+
+
+        this.cicleNumber++;*/
         /* for(Bug bug : population){
 
         }*/
@@ -117,38 +132,38 @@ public class World {
 
     private void movement() {
         for (Bug bug : population) {
-           // int direction = rand.nextInt(8);
-           // jump = rand.nextInt(20);
+            // int direction = rand.nextInt(8);
+            // jump = rand.nextInt(20);
 
             int x = bug.getx();
             int y = bug.gety();
             this.setBugPosition(bug, x, y);
 
-          /*  switch (direction) {
-                case 0:
-                    this.setBugPosition(bug, x + jump, y);
-                    break;
-                case 1:
-                    this.setBugPosition(bug, x, y);
-                    break;
-                case 2:
-                    this.setBugPosition(bug, x, y + jump);
-                    break;
-                case 3:
-                    this.setBugPosition(bug, x, y - jump);
-                    break;
-                case 4:
-                    this.setBugPosition(bug, x + jump, y + jump);
-                    break;
-                case 5:
-                    this.setBugPosition(bug, x + jump, y - jump);
-                    break;
-                case 6:
-                    this.setBugPosition(bug, x - jump, y + jump);
-                    break;
-                case 7:
-                    this.setBugPosition(bug, x - jump, y - jump);
-                    break;
+            /*  switch (direction) {
+            case 0:
+            this.setBugPosition(bug, x + jump, y);
+            break;
+            case 1:
+            this.setBugPosition(bug, x, y);
+            break;
+            case 2:
+            this.setBugPosition(bug, x, y + jump);
+            break;
+            case 3:
+            this.setBugPosition(bug, x, y - jump);
+            break;
+            case 4:
+            this.setBugPosition(bug, x + jump, y + jump);
+            break;
+            case 5:
+            this.setBugPosition(bug, x + jump, y - jump);
+            break;
+            case 6:
+            this.setBugPosition(bug, x - jump, y + jump);
+            break;
+            case 7:
+            this.setBugPosition(bug, x - jump, y - jump);
+            break;
             }*/
 
         }
@@ -162,7 +177,7 @@ public class World {
         cells[newx][newy].addBug(bug);
         bug.setCell(cells[newx][newy]);
 
-       /* newx = Math.abs(newx) % this.cellsPerSide;
+        /* newx = Math.abs(newx) % this.cellsPerSide;
         newy = Math.abs(newy) % this.cellsPerSide;
         bug.getCell().removeBug(bug);
         bug.setPosition(newx, newy);
