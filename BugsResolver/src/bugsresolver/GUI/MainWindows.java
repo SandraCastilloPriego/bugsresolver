@@ -118,6 +118,7 @@ public class MainWindows extends javax.swing.JFrame {
         openMenuItem = new javax.swing.JMenuItem();
         saveMenuItem = new javax.swing.JMenuItem();
         purgeMenuItem = new javax.swing.JMenuItem();
+        addBugsMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
@@ -190,6 +191,14 @@ public class MainWindows extends javax.swing.JFrame {
         });
         jMenu2.add(purgeMenuItem);
 
+        addBugsMenuItem.setText("Add bugs");
+        addBugsMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addBugsMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu2.add(addBugsMenuItem);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -221,7 +230,7 @@ public class MainWindows extends javax.swing.JFrame {
     private void startMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startMenuItemActionPerformed
         start = false;
         if (dataset != null) {
-            world = new World(dataset, 200);
+            world = new World(dataset, 100);
             canvas = new CanvasWorld(world);
             this.canvasPanel.removeAll();
             this.canvasPanel.add(canvas);
@@ -264,7 +273,12 @@ public class MainWindows extends javax.swing.JFrame {
         this.world.purgeBugs();
     }//GEN-LAST:event_purgeMenuItemActionPerformed
 
+    private void addBugsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBugsMenuItemActionPerformed
+        world.addMoreBugs();
+    }//GEN-LAST:event_addBugsMenuItemActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem addBugsMenuItem;
     private javax.swing.JPanel canvasPanel;
     private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JMenu jMenu1;
