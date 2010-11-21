@@ -153,8 +153,8 @@ public interface BugDataset {
      *
      * @param info Information about the data set
      */
-    public void setInfo(String info);
-
+    public void setInfo(String info);    
+    
     /**
      * Set the sample type
      * @param type
@@ -168,16 +168,4 @@ public interface BugDataset {
      */
     public String getType(String sampleName);
 
-    /**
-     * Set the samples used for the training.
-     * @param sampleName
-     */
-    public void setSampleForTraining(String sampleName);
-
-    /**
-     * True if the sample is used for training.
-     * @param sampleName
-     * @return
-     */
-    public boolean isForTraining(String sampleName);
 }

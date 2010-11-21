@@ -86,15 +86,15 @@ public class TestBug {
             this.addId(row.getID());
         }
 
-        this.classify(ids);
-        this.prediction(ids);
+       // this.classify(ids);
+        //this.prediction(ids);
     }
 
     public void addId(int id){
         this.ids.add(id);
     }
 
-    private void classify(List<Integer> ids) {
+   /* private void classify(List<Integer> ids) {
         try {
 
             FastVector attributes = new FastVector();
@@ -251,7 +251,7 @@ public class TestBug {
                     System.out.print(train.classAttribute().value((int) pred) + " - ");
                     System.out.println(Utils.arrayToString(dist));*/
 
-                    if (train.instance(i).toString(train.classIndex()).equals("1")) {
+                   /* if (train.instance(i).toString(train.classIndex()).equals("1")) {
                         this.totalspec++;
                         if (train.classAttribute().value((int) pred).equals("1")) {
                             this.spec++;
@@ -273,5 +273,5 @@ public class TestBug {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
+    }*/
 }

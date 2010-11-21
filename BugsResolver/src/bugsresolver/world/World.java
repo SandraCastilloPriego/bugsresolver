@@ -18,6 +18,10 @@ package bugsresolver.world;
 
 import bugsresolver.data.BugDataset;
 import bugsresolver.data.PeakListRow;
+import bugsresolver.utils.Range;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -48,15 +52,20 @@ public class World {
         this.rand = new Random();
         if (dataset != null) {
             cells = new Cell[cellsPerSide][cellsPerSide];
-            Vector<String> samplesNames = dataset.getAllColumnNames();
             for (int i = 0; i < cellsPerSide; i++) {
                 cells[i] = new Cell[cellsPerSide];
                 for (int j = 0; j < cells[i].length; j++) {
                     cells[i][j] = new Cell();
-                    this.setSamplesInCell(samplesNames, cells[i][j]);
                 }
             }
+            int numCellSubWorld = cellsPerSide / 10;
+
             for (int i = 0; i < 10; i++) {
+                for (int e = 0; e < 10; e++) {
+                    createCity(numCellSubWorld, i, e);
+                }
+            }
+            for (int i = 0; i < 3; i++) {
                 for (PeakListRow row : dataset.getRows()) {
                     this.addBug(row);
                 }
@@ -64,11 +73,21 @@ public class World {
         }
     }
 
-    private void setSamplesInCell(Vector<String> samplesNames, Cell cell) {
-        int pos = rand.nextInt(30);
+    private void createCity(int numCellSubWorld, int x, int y) {
+        int initX = x * numCellSubWorld;
+        int initY = y * numCellSubWorld;
+        Range range = new Range(x * 10, (x * 10) + 10);
+        for (int i = initX; i < numCellSubWorld + initX; i++) {
+            for (int e = initY; e < numCellSubWorld + initY; e++) {
+                this.setSamplesInCell(dataset.getAllColumnNames(), cells[i][e], range);
+            }
+        }
+    }
+
+    private void setSamplesInCell(Vector<String> samplesNames, Cell cell, Range range) {
+        int pos = range.getRandom();
         String name = samplesNames.elementAt(pos);
-        this.dataset.isForTraining(name);
-        cell.setParameters(dataset.getType(name), name);
+        cell.setParameters(name, range, dataset.getType(name));
     }
 
     public synchronized void addMoreBugs() {
@@ -81,9 +100,8 @@ public class World {
         boolean isInside = true;
         int cont = 0;
         while (isInside) {
-            int X = this.rand.nextInt(this.cellsPerSide);
-            int Y = this.rand.nextInt(this.cellsPerSide);
-
+            int X = this.rand.nextInt(this.cellsPerSide - 1);
+            int Y = this.rand.nextInt(this.cellsPerSide - 1);
             Bug bug = new Bug(X, Y, cells[X][Y], row, dataset);
             cells[X][Y].addBug(bug);
             this.population.add(bug);
@@ -114,17 +132,19 @@ public class World {
 
         death();
 
-        if (population.size() > 3000) {
+        if (population.size() > 2000) {
             this.purgeBugs();
         }
 
-       /* if (cicleNumber > 2000) {
-            this.addMoreBugs();
-            cicleNumber = 0;
+        this.cicleNumber++;
+
+        /* if (cicleNumber > 2000) {
+        this.addMoreBugs();
+        cicleNumber = 0;
         }
 
 
-        this.cicleNumber++;*/
+
         /* for(Bug bug : population){
 
         }*/
@@ -132,78 +152,69 @@ public class World {
 
     private void movement() {
         for (Bug bug : population) {
-            // int direction = rand.nextInt(8);
-            // jump = rand.nextInt(20);
+            int direction = rand.nextInt(8);
 
             int x = bug.getx();
             int y = bug.gety();
-            this.setBugPosition(bug, x, y);
+            // this.setBugPosition(bug, x, y);
 
-            /*  switch (direction) {
-            case 0:
-            this.setBugPosition(bug, x + jump, y);
-            break;
-            case 1:
-            this.setBugPosition(bug, x, y);
-            break;
-            case 2:
-            this.setBugPosition(bug, x, y + jump);
-            break;
-            case 3:
-            this.setBugPosition(bug, x, y - jump);
-            break;
-            case 4:
-            this.setBugPosition(bug, x + jump, y + jump);
-            break;
-            case 5:
-            this.setBugPosition(bug, x + jump, y - jump);
-            break;
-            case 6:
-            this.setBugPosition(bug, x - jump, y + jump);
-            break;
-            case 7:
-            this.setBugPosition(bug, x - jump, y - jump);
-            break;
-            }*/
+            switch (direction) {
+                case 0:
+                    this.setBugPosition(bug, x + jump, y);
+                    break;
+                case 1:
+                    this.setBugPosition(bug, x, y);
+                    break;
+                case 2:
+                    this.setBugPosition(bug, x, y + jump);
+                    break;
+                case 3:
+                    this.setBugPosition(bug, x, y - jump);
+                    break;
+                case 4:
+                    this.setBugPosition(bug, x + jump, y + jump);
+                    break;
+                case 5:
+                    this.setBugPosition(bug, x + jump, y - jump);
+                    break;
+                case 6:
+                    this.setBugPosition(bug, x - jump, y + jump);
+                    break;
+                case 7:
+                    this.setBugPosition(bug, x - jump, y - jump);
+                    break;
+            }
 
         }
     }
 
-    private void setBugPosition(Bug bug, int x, int y) {
-        int newx = rand.nextInt(this.cellsPerSide - 1);
-        int newy = rand.nextInt(this.cellsPerSide - 1);
-        bug.getCell().removeBug(bug);
-        bug.setPosition(newx, newy);
-        cells[newx][newy].addBug(bug);
-        bug.setCell(cells[newx][newy]);
-
-        /* newx = Math.abs(newx) % this.cellsPerSide;
-        newy = Math.abs(newy) % this.cellsPerSide;
-        bug.getCell().removeBug(bug);
-        bug.setPosition(newx, newy);
-        cells[newx][newy].addBug(bug);
-        bug.setCell(cells[newx][newy]);*/
-
-
-    }
-    /* private void setBugPosition(Bug bug, int newx, int newy) {
-    if (newx > this.cellsPerSide) {
-    newx = (jump - (this.cellsPerSide - newx));
-    } else if (newx < 0) {
-    newx = this.cellsPerSide - (jump + newx);
-    }
-    if (newy > this.cellsPerSide) {
-    newy = (jump - (this.cellsPerSide - newy));
-    } else if (newy < 0) {
-    newy = this.cellsPerSide - (jump + newy);
-    }
-
+    /* private void setBugPosition(Bug bug, int x, int y) {
+    int newx = rand.nextInt(this.cellsPerSide - 1);
+    int newy = rand.nextInt(this.cellsPerSide - 1);
     bug.getCell().removeBug(bug);
     bug.setPosition(newx, newy);
     cells[newx][newy].addBug(bug);
     bug.setCell(cells[newx][newy]);
 
+
     }*/
+    private void setBugPosition(Bug bug, int newx, int newy) {
+        if (newx > this.cellsPerSide - 1) {
+            newx = 1;
+        } else if (newx < 0) {
+            newx = 99;
+        }
+        if (newy > this.cellsPerSide - 1) {
+            newy = 1;
+        } else if (newy < 0) {
+            newy = 99;
+        }
+        bug.getCell().removeBug(bug);
+        bug.setPosition(newx, newy);
+        cells[newx][newy].addBug(bug);
+        bug.setCell(cells[newx][newy]);
+
+    }
 
     public List<Bug> getPopulation() {
         return this.population;
@@ -220,55 +231,107 @@ public class World {
     }
 
     public void purgeBugs() {
-        if (population.size() > 3000) {
-            Comparator<Bug> c = new Comparator<Bug>() {
 
-                public int compare(Bug o1, Bug o2) {
-                    if (o1.getAreaUnderTheCurve() < o2.getAreaUnderTheCurve()) {
-                        return 1;
-                    } else {
-                        return -1;
-                    }
+        Comparator<Bug> c = new Comparator<Bug>() {
+
+            public int compare(Bug o1, Bug o2) {
+                if (o1.getAreaUnderTheCurve() < o2.getAreaUnderTheCurve()) {
+                    return 1;
+                } else {
+                    return -1;
                 }
-            };
-
-            Collections.sort(population, c);
-
-            //  List<Bug> populationcopy = new ArrayList<Bug>();
-            for (int i = 3000; i < this.population.size(); i++) {
-                population.get(i).kill();
-                // populationcopy.add(this.population.get(i));
-                //System.out.println(this.population.get(i).getSensitivity());
             }
+        };
 
-            //  this.population = populationcopy;
-            /*try {
-            Bug bug = this.population.get(0);
+        Collections.sort(population, c);
 
-            // if (bug.getSensitivity() > 0.6 && bug.getSpecificity() > 0.6 && bug.getAge() > 100) {
-            System.out.println("statistics: " + bug.getAge() + " - " + bug.getTotal() + " sensitivity: " + bug.getSensitivity() + " specificity: " + bug.getSpecificity() + " - " + bug.getClassifierType());
-            for (PeakListRow row : bug.getRows()) {
-            System.out.println(row.getID());
-            }
-            System.out.println("----------------");
-            // }
-
-            } catch (Exception e) {
-            }*/
+        //  List<Bug> populationcopy = new ArrayList<Bug>();
+        for (int i = 2000; i < this.population.size(); i++) {
+            population.get(i).kill();
+            // populationcopy.add(this.population.get(i));
+            //System.out.println(this.population.get(i).getSensitivity());
         }
+
+        //  this.population = populationcopy;
+        /*try {
+        Bug bug = this.population.get(0);
+
+        // if (bug.getSensitivity() > 0.6 && bug.getSpecificity() > 0.6 && bug.getAge() > 100) {
+        System.out.println("statistics: " + bug.getAge() + " - " + bug.getTotal() + " sensitivity: " + bug.getSensitivity() + " specificity: " + bug.getSpecificity() + " - " + bug.getClassifierType());
+        for (PeakListRow row : bug.getRows()) {
+        System.out.println(row.getID());
+        }
+        System.out.println("----------------");
+        // }
+
+        } catch (Exception e) {
+        }*/
+
     }
 
     private void death() {
         List<Bug> deadBugs = new ArrayList<Bug>();
+
+
         for (Bug bug : population) {
             if (bug.isDead()) {
                 deadBugs.add(bug);
+
+
                 this.cells[bug.getx()][bug.gety()].removeBug(bug);
+
+
             }
         }
         for (Bug bug : deadBugs) {
             this.population.remove(bug);
+
+
         }
+    }
+
+    public void saveBugs() throws IOException {
+        if (cicleNumber > 1000) {
+            FileWriter fstream = new FileWriter("/home/bicha/Desktop/output.txt");
+            BufferedWriter out = new BufferedWriter(fstream);
+
+
+
+            for (Bug bug : this.population) {
+                if (bug.getSensitivity() > 0.6 && bug.getSpecificity() > 0.6 && bug.getAge() > 3000) {
+                    out.write(bug.getClassifierType().name());
+                    out.write("\n");
+
+
+                    for (PeakListRow row : bug.getRows()) {
+                        out.write(String.valueOf(row.getID()));
+                        out.write("\n");
+
+
+                    }
+                    out.write(String.valueOf(bug.getSensitivity()) + " - " + String.valueOf(bug.getSpecificity()));
+                    out.write("\n");
+                    out.write("--------------------------------------------------------------");
+                    out.write("\n");
+
+
+
+                }
+            }
+            out.close();
+            fstream.close();
+
+
+
+
+
+
+
+
+        }
+
+
+
     }
 
     public class Population implements Comparable<Bug> {

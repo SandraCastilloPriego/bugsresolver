@@ -16,6 +16,7 @@
  */
 package bugsresolver.world;
 
+import bugsresolver.utils.Range;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,15 +33,21 @@ public class Cell {
     String sampleName;
     List<Bug> bugsInside;
     Random rand;
+    Range range;
 
     public Cell() {
         this.rand = new Random();
     }
 
-    public void setParameters(String type, String sampleName) {
-        this.type = type;
+    public void setParameters(String sampleName, Range range, String type) {
         this.sampleName = sampleName;
         this.bugsInside = new ArrayList<Bug>();
+        this.range = range;
+        this.type = type;
+    }
+
+    public Range getRange(){
+        return range;
     }
 
     public void addBug(Bug bug) {
@@ -74,11 +81,10 @@ public class Cell {
         if (bugsInside.size() > 1) {
             Collections.sort(bugsInside, c);
             Bug mother = bugsInside.get(0);
-          //  System.out.println(mother.getAreaUnderTheCurve());
+            //  System.out.println(mother.getAreaUnderTheCurve());
             for (Bug father : this.bugsInside) {
                 if (mother != father && father.isClassify() && mother.isClassify()
-                           && mother.getAreaUnderTheCurve() > 0.5 && father.getAreaUnderTheCurve() > 0.5
-                        //&& mother.getAge() > 25 && father.getAge() > 25
+                        && mother.getAreaUnderTheCurve() > 0.5 && father.getAreaUnderTheCurve() > 0.5 && mother.getAge() > 100 && father.getAge() > 100
                         ) {
                     childs.add(new Bug(mother, father, mother.getDataset()));
                 }
