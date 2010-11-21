@@ -28,6 +28,7 @@ import bugsresolver.data.BugDataset;
 import bugsresolver.data.PeakListRow;
 import bugsresolver.world.Bug;
 import bugsresolver.world.World;
+import java.io.IOException;
 import java.util.List;
 import bugsresolver.GUI.utils.BasicFilesParserCSV;
 import bugsresolver.data.BugDataset;
@@ -35,6 +36,8 @@ import bugsresolver.data.PeakListRow;
 import bugsresolver.world.Bug;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.ComplementNaiveBayes;
 import weka.classifiers.bayes.NaiveBayes;
@@ -251,7 +254,7 @@ public class MainWindows extends javax.swing.JFrame {
         try {
             List<Bug> population = world.getPopulation();
             for (Bug bug : population) {
-                if (bug.getSensitivity() > 0.70 && bug.getSpecificity() > 0.5 && bug.getAge() > 100) {
+                if (bug.getSensitivity() > 0.70 && bug.getSpecificity() > 0.5 && bug.getAge() > 400) {
                     System.out.println("statistics: " + bug.getAge() + " - " + bug.getClassifierType());
                     for (PeakListRow row : bug.getRows()) {
                         this.addId(row.getID());
@@ -306,6 +309,11 @@ public class MainWindows extends javax.swing.JFrame {
                 // Paint the graphics
                 canvas.update(canvas.getGraphics());
                 world.cicle();
+                try {
+                    world.saveBugs();
+                } catch (IOException ex) {
+                    Logger.getLogger(MainWindows.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
             }
 
@@ -316,7 +324,7 @@ public class MainWindows extends javax.swing.JFrame {
         this.ids.add(id);
     }
 
-    private void classify(List<Integer> ids) {
+ /*   private void classify(List<Integer> ids) {
         try {
 
             FastVector attributes = new FastVector();
@@ -412,7 +420,7 @@ public class MainWindows extends javax.swing.JFrame {
                     System.out.print(train.classAttribute().value((int) pred) + " - ");
                     System.out.println(Utils.arrayToString(dist));*/
 
-                    if (train.instance(i).toString(train.classIndex()).equals("1")) {
+         /*           if (train.instance(i).toString(train.classIndex()).equals("1")) {
                         this.totalspec++;
                         if (train.classAttribute().value((int) pred).equals("1")) {
                             this.spec++;
@@ -434,6 +442,6 @@ public class MainWindows extends javax.swing.JFrame {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
+    }*/
 }
 

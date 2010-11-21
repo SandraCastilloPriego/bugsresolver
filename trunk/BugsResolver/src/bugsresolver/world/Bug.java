@@ -18,6 +18,7 @@ package bugsresolver.world;
 
 import bugsresolver.data.BugDataset;
 import bugsresolver.data.PeakListRow;
+import bugsresolver.utils.Range;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -66,7 +67,7 @@ public class Bug {
     private Cell cell;
     private int x, y;
     private List<PeakListRow> rowList;
-    private double life = 3000;
+    private double life = 300;
     private BugDataset dataset;
     private Classifier classifier;
     private classifiersEnum classifierType;
@@ -78,6 +79,7 @@ public class Bug {
     private int MAXNUMBERGENES = 3;
     Evaluation eval;
     boolean fixValue = false;
+    Range range;
     /* private double AUC = 0;
     private static double maxSpec = 0, maxSen = 0;
     private static double maxSpecTraining = 0;*/
@@ -86,14 +88,17 @@ public class Bug {
     public Bug(int x, int y, Cell cell, PeakListRow row, BugDataset dataset) {
         rand = new Random();
         this.cell = cell;
+        this.range = cell.getRange();
         this.dataset = dataset;
         this.x = x;
         this.y = y;
         this.rowList = new ArrayList<PeakListRow>();
         this.rowList.add(row);
-        int n = rand.nextInt(classifiersEnum.values().length);
-        this.classifierType = classifiersEnum.values()[n];
-        this.classify();
+        // int n = rand.nextInt(classifiersEnum.values().length);
+        this.classifierType = classifiersEnum.Logistic;
+        this.classify(cell.getRange());
+        //  this.classifierType = classifiersEnum.values()[n];
+        //  this.classify();
     }
 
     public double getAge() {
@@ -104,6 +109,7 @@ public class Bug {
         rand = new Random();
         this.dataset = dataset;
         this.cell = father.getCell();
+        this.range = cell.getRange();
         this.x = father.getx();
         this.y = father.gety();
         this.rowList = new ArrayList<PeakListRow>();
@@ -118,8 +124,8 @@ public class Bug {
         } else {
             this.classifierType = father.getClassifierType();
         }
-
-        this.classify();
+this.classify(cell.getRange());
+        // this.classify();
     }
 
     public void assingGenes(Bug parent, int plus) {
@@ -142,12 +148,13 @@ public class Bug {
     }
 
     public int mutation() {
-        int probability = rand.nextInt(10);
+        /* int probability = rand.nextInt(10);
         if (probability == 1) {
-            return rand.nextInt(this.MAXNUMBERGENES - 1);
+        return rand.nextInt(this.MAXNUMBERGENES - 1);
         } else {
-            return 0;
-        }
+        return 0;
+        }*/
+        return 0;
     }
 
     public classifiersEnum getClassifierType() {
@@ -217,9 +224,9 @@ public class Bug {
         }
     }
 
-    private void classify() {
+    private void classify(Range range) {
         try {
-            Instances data = getWekaDataset();
+            Instances data = getWekaDataset(range);
             classifier = setClassifier();
             if (classifier != null) {
                 classifier.buildClassifier(data);
@@ -230,6 +237,10 @@ public class Bug {
     }
 
     public void eat(int nBugs) {
+        if (cell.getRange() != this.range) {
+            this.classify(cell.getRange());
+        }
+
         total++;
 
         if (cell.type.equals("1")) {
@@ -241,7 +252,7 @@ public class Bug {
         if (isClassify()) {
             wellClassified++;
 
-            this.life += 0.9;
+            this.life += 0.5;
             if (cell.type.equals("1")) {
                 this.spec++;
             } else {
@@ -250,18 +261,20 @@ public class Bug {
 
         }
 
+        this.sensitivity = this.sen / this.totalsen;
+        this.specificity = this.spec / this.totalspec;
 
-      /*  if (!fixValue) {
-            this.sensitivity = this.sen / this.totalsen;
-            this.specificity = this.spec / this.totalspec;
-            // this.prediction();
-            // this.validate();
+        /*  if (!fixValue) {
+        this.sensitivity = this.sen / this.totalsen;
+        this.specificity = this.spec / this.totalspec;
+        // this.prediction();
+        // this.validate();
 
-            // System.out.println(this.sensitivity + " - " + this.specificity);
-            //if (this.getAge() > 100 && this.sensitivity > 0.7 && this.specificity > 0.6) {
-            // System.out.println(this.getAreaUnderTheCurve());
-            //    this.prediction();
-            // }
+        // System.out.println(this.sensitivity + " - " + this.specificity);
+        //if (this.getAge() > 100 && this.sensitivity > 0.7 && this.specificity > 0.6) {
+        // System.out.println(this.getAreaUnderTheCurve());
+        //    this.prediction();
+        // }
         }*/
     }
 
@@ -511,7 +524,7 @@ public class Bug {
     }
 
     }*/
-    private Instances getWekaDataset() {
+    private Instances getWekaDataset(Range range) {
         try {
 
             FastVector attributes = new FastVector();
@@ -533,8 +546,9 @@ public class Bug {
             Instances data = new Instances("Dataset", attributes, 0);
 
             for (int i = 0; i < this.dataset.getNumberCols(); i++) {
-                String sampleName = dataset.getAllColumnNames().elementAt(i);
-                if (!this.dataset.isForTraining(sampleName)) {
+                if (!range.contains(i)) {
+                    String sampleName = dataset.getAllColumnNames().elementAt(i);
+
                     double[] values = new double[data.numAttributes()];
                     int cont = 0;
                     for (PeakListRow row : rowList) {

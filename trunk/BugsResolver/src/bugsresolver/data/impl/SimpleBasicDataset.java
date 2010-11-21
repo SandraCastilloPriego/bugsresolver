@@ -33,7 +33,6 @@ public class SimpleBasicDataset implements BugDataset {
     Vector<PeakListRow> peakList;
     Vector<String> columnNames;
     Hashtable<String, String> type;
-    Hashtable<String, Boolean> isForTraining;
     String infoDataset = "";
     private int ID;
     private int numberRows = 0;
@@ -47,7 +46,6 @@ public class SimpleBasicDataset implements BugDataset {
         this.peakList = new Vector<PeakListRow>();
         this.columnNames = new Vector<String>();
         this.type = new Hashtable<String, String>();
-        this.isForTraining = new Hashtable<String, Boolean>();
     }
 
     /**
@@ -67,19 +65,6 @@ public class SimpleBasicDataset implements BugDataset {
             if (columnName.matches(".*" + name + ".*")) {
                 return true;
             }
-        }
-        return false;
-    }
-
-
-    public void setSampleForTraining(String sampleName){
-        this.isForTraining.put(sampleName, Boolean.TRUE);
-    }
-
-
-    public boolean isForTraining(String sampleName){
-        if(this.isForTraining.containsKey(sampleName)){
-            return this.isForTraining.get(sampleName);
         }
         return false;
     }
@@ -198,5 +183,4 @@ public class SimpleBasicDataset implements BugDataset {
         return type.get(sampleName);
     }
 }
-
        
