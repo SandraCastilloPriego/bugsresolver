@@ -61,9 +61,7 @@ public class World {
             int numCellSubWorld = cellsPerSide / 10;
 
             for (int i = 0; i < 10; i++) {
-                for (int e = 0; e < 10; e++) {
-                    createCity(numCellSubWorld, i, e);
-                }
+                createCity(numCellSubWorld, i);
             }
             for (int i = 0; i < 3; i++) {
                 for (PeakListRow row : dataset.getRows()) {
@@ -73,12 +71,11 @@ public class World {
         }
     }
 
-    private void createCity(int numCellSubWorld, int x, int y) {
+    private void createCity(int numCellSubWorld, int x) {
         int initX = x * numCellSubWorld;
-        int initY = y * numCellSubWorld;
         Range range = new Range(x * 10, (x * 10) + 10);
         for (int i = initX; i < numCellSubWorld + initX; i++) {
-            for (int e = initY; e < numCellSubWorld + initY; e++) {
+            for (int e = 0; e < this.cellsPerSide; e++) {
                 this.setSamplesInCell(dataset.getAllColumnNames(), cells[i][e], range);
             }
         }
@@ -292,13 +289,13 @@ public class World {
 
     public void saveBugs() throws IOException {
         if (cicleNumber > 1000) {
-            FileWriter fstream = new FileWriter("/home/bicha/Desktop/output.txt");
+            FileWriter fstream = new FileWriter("output.txt");
             BufferedWriter out = new BufferedWriter(fstream);
 
 
 
             for (Bug bug : this.population) {
-                if (bug.getSensitivity() > 0.6 && bug.getSpecificity() > 0.6 && bug.getAge() > 3000) {
+                if (bug.getSensitivity() > 0.6 && bug.getSpecificity() > 0.6 && bug.getAge() > 400) {
                     out.write(bug.getClassifierType().name());
                     out.write("\n");
 
@@ -314,15 +311,10 @@ public class World {
                     out.write("--------------------------------------------------------------");
                     out.write("\n");
 
-
-
                 }
             }
             out.close();
             fstream.close();
-
-
-
 
 
 
